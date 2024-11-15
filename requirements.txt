@@ -1,0 +1,16 @@
+pandas
+psycopg2
+sqlalchemy
+openpyxl
+numpy
+xlrd
+dash
+dash_bootstrap_components
+dash_leaflet
+dash_labs
+azure-identity
+azure-storage-blob
+azure-keyvault-secrets
+python-dotenv
+gunicorn
+datetime

@@ -1,0 +1,9 @@
+# docker-compose.yml
+services:
+  webapp:
+    image: ghcr.io/arqpdatateam/multipage_app:latest
+    container_name: multipage_app
+    restart: always
+    ports:
+      - "80:8080"
+    
