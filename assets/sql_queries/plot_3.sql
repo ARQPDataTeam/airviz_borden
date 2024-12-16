@@ -1,6 +1,6 @@
 -- gases plot 1
 SET TIMEZONE TO 'GMT';
-WITH timerange AS ( SELECT '2024-09-12'::timestamp AS start_time, '2024-09-13'::timestamp AS end_time )
+WITH timerange AS ( SELECT '{}'::timestamp AS start_time, '{}'::timestamp AS end_time )
 SELECT datetime AT TIME ZONE 'GMT' AS datetime, co2_l, co2_p, co2_e,round(ocs * 1000000,0)::float8 AS ocs, co2_pic, ch4_pic FROM (
     SELECT DISTINCT ON (dt) dt AS datetime, co2 AS co2_p FROM (
         SELECT date_trunc('minute',datetime) AS dt, co2
