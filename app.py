@@ -1,19 +1,24 @@
 import dash
 from dash import Dash, html, dcc, callback 
 from dash.exceptions import PreventUpdate
-from datetime import datetime as dt
-from datetime import timedelta as td
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+from sqlalchemy import create_engine
+from sqlalchemy import text
+from datetime import datetime as dt
+from datetime import timedelta as td
+
 
 # local modules
 from postgres_query import fig_generator
 from credentials import sql_engine_string_generator
 
+
 url_prefix = "/app/SWAPIT/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # generate the sql connection string
 sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_BORDEN_DBNAME','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
 now=dt.today()
@@ -38,19 +43,32 @@ app.layout = html.Div(children=
                         max_date_allowed=end_date,
                         display_format='YYYY-MM-DD'
                     ),
+                    html.Br(),
+                    html.A(html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0),href='#plot_1'),
+                    html.Br(),
+                    html.A(html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0),href='#plot_2'),
+                    html.Br(),
+                    html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0),href='#plot_3'),
+                    html.Br(),
+                    html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0),href='#plot_4'),
+                    html.Br(),
                     html.H2('Borden CR3000 Temperatures Display'),
-                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1',sql_engine_string)),
+                    html.A(id="plot_1"),
+                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1',sql_engine)),
                     html.Br(),
                     html.H2(children=['Borden CSAT Temperatures Display']),
                     html.Br(),
-                    dcc.Graph(id='plot_2',figure=fig_generator(start_date,end_date,'plot_2',sql_engine_string)),
+                    html.A(id="plot_2"),
+                    dcc.Graph(id='plot_2',figure=fig_generator(start_date,end_date,'plot_2',sql_engine)),
                     html.Br(),
                     html.H2('Borden Gases Display'),
                     html.Br(),
-                    dcc.Graph(id='plot_3',figure=fig_generator(start_date,end_date,'plot_3',sql_engine_string)),
+                    html.A(id="plot_3"),
+                    dcc.Graph(id='plot_3',figure=fig_generator(start_date,end_date,'plot_3',sql_engine)),
                     html.Br(),
                     html.H2(children=['Borden Water Vapour Display']),
-                    dcc.Graph(id='plot_4',figure=fig_generator(start_date,end_date,'plot_4',sql_engine_string)),
+                    html.A(id="plot_4"),
+                    dcc.Graph(id='plot_4',figure=fig_generator(start_date,end_date,'plot_4',sql_engine)),
                     ] 
                     )
 
@@ -70,6 +88,6 @@ def update_output(start_date,end_date):
         plot_2_fig=fig_generator(start_date,end_date,'plot_2',sql_engine_string)
     return plot_1_fig,plot_2_fig
 
-
+sql_engine.dispose()
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)

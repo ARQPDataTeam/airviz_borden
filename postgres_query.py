@@ -1,7 +1,5 @@
 import pandas as pd
 from ast import literal_eval
-from sqlalchemy import create_engine
-from sqlalchemy import text
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
@@ -9,11 +7,7 @@ from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
-def fig_generator(start_date,end_date,sql_query,sql_engine_string):
-
-    # set the sql engine string
-    sql_engine=create_engine(sql_engine_string)
-    conn = sql_engine.connect()
+def fig_generator(start_date,end_date,sql_query,sql_engine):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
@@ -34,9 +28,11 @@ def fig_generator(start_date,end_date,sql_query,sql_engine_string):
 
     # sql query
     sql_query=(sql_query).format(start_date,end_date)
+    print (sql_query)
 
+    with sql_engine.connect() as conn:
     # create the dataframes from the sql query
-    output_df=pd.read_sql_query(sql_query, con=sql_engine)
+        output_df=pd.read_sql_query(sql_query, conn)
     # set a datetime index
     output_df.set_index('datetime', inplace=True)
     output_df.index=pd.to_datetime(output_df.index)
@@ -82,6 +78,5 @@ def fig_generator(start_date,end_date,sql_query,sql_engine_string):
         return fig
 
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
-    conn.close()
     return fig
 
