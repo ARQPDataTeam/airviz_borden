@@ -1,8 +1,8 @@
 # docker-compose.yml
 services:
   webapp:
-    image: ghcr.io/arqpdatateam/borden_app:latest
-    container_name: borden_app
+    image: ghcr.io/arqpdatateam/airviz_borden:latest
+    container_name: airviz_borden
     restart: always
     ports:
       - "80:8080"

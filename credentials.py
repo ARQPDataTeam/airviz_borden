@@ -8,7 +8,7 @@ def sql_engine_string_generator(datahub_host, datahub_db, datahub_user, datahub_
     # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
     try:
         # set the key vault path
-        KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
+        KEY_VAULT_URL = "https://fsdh-proj-aqpd-prd-kv.vault.azure.net/"
         error_occur = False
 
         # Retrieve the secrets containing DB connection details
