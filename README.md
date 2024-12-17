@@ -12,5 +12,5 @@ No need to describe the how-to's here, the documentation will do a much better j
 This instrument measures relative component winds and virtual temperature.
 
 ## G2401
-This instrument (Picarro) measures CO, CO2, CH4 and H2O, of which CO and CH4 (methane) are shown as test.
+This instrument (Picarro) measures CO, CO2, CH4 and H2O.
 
