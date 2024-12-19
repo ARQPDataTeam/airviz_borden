@@ -28,7 +28,7 @@ def fig_generator(start_date,end_date,sql_query,sql_engine):
 
     # sql query
     sql_query=(sql_query).format(start_date,end_date)
-    print (sql_query)
+    # print (sql_query)
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
