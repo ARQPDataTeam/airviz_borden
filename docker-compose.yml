@@ -1,6 +1,7 @@
 # docker-compose.yml
 services:
-  webapp:
+  web:
+    build: .
     image: ghcr.io/arqpdatateam/airviz_borden:latest
     container_name: airviz_borden
     restart: always

@@ -17,7 +17,7 @@ from credentials import sql_engine_string_generator
 url_prefix = "/app/AQPDBOR/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # generate the sql connection string
-sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_BORDEN_DBNAME','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden')
 sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
