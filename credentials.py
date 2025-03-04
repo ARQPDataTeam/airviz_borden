@@ -1,3 +1,4 @@
+
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 import os
@@ -37,4 +38,3 @@ def sql_engine_string_generator(datahub_host, datahub_user, datahub_pwd, datahub
     # set the sql engine string
     sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,datahub_db)
     return sql_engine_string
-

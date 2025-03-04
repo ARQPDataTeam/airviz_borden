@@ -17,7 +17,7 @@ from credentials import sql_engine_string_generator
 url_prefix = "/app/AQPDBOR/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # generate the sql connection string
-sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden')
+sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden')
 sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
@@ -35,7 +35,7 @@ end_date=now.strftime('%Y-%m-%d')
 # set up the app layout
 app.layout = html.Div(children=
                     [
-                    html.H1('BORDEN DASHBOARD', style={'textAlign': 'center'}),
+                    html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
                     html.H3('Pick the desired date range.  This will apply to all plots on the page.'),
                     dcc.DatePickerRange(
                         id='date-picker',
@@ -90,4 +90,4 @@ def update_output(start_date,end_date):
 
 sql_engine.dispose()
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, port=8080)
