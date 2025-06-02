@@ -10,7 +10,7 @@ from datetime import timedelta as td
 
 
 # local modules
-from postgres_query import fig_generator
+from postgres_query import time_series_generator
 from credentials import sql_engine_string_generator
 
 
@@ -54,21 +54,21 @@ app.layout = html.Div(children=
                     html.Br(),
                     html.H2('Borden CR3000 Temperatures Display'),
                     html.A(id="plot_1"),
-                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1',sql_engine)),
+                    dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine)),
                     html.Br(),
                     html.H2(children=['Borden CSAT Temperatures Display']),
                     html.Br(),
                     html.A(id="plot_2"),
-                    dcc.Graph(id='plot_2',figure=fig_generator(start_date,end_date,'plot_2',sql_engine)),
+                    dcc.Graph(id='plot_2',figure=time_series_generator(start_date,end_date,'plot_2',sql_engine)),
                     html.Br(),
                     html.H2('Borden Gases Display'),
                     html.Br(),
                     html.A(id="plot_3"),
-                    dcc.Graph(id='plot_3',figure=fig_generator(start_date,end_date,'plot_3',sql_engine)),
+                    dcc.Graph(id='plot_3',figure=time_series_generator(start_date,end_date,'plot_3',sql_engine)),
                     html.Br(),
                     html.H2(children=['Borden Water Vapour Display']),
                     html.A(id="plot_4"),
-                    dcc.Graph(id='plot_4',figure=fig_generator(start_date,end_date,'plot_4',sql_engine)),
+                    dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine)),
                     ] 
                     )
 
@@ -84,8 +84,8 @@ def update_output(start_date,end_date):
         raise PreventUpdate
     else:
         print ('Updating plot')
-        plot_1_fig=fig_generator(start_date,end_date,'plot_1',sql_engine_string)
-        plot_2_fig=fig_generator(start_date,end_date,'plot_2',sql_engine_string)
+        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine_string)
+        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine_string)
     return plot_1_fig,plot_2_fig
 
 sql_engine.dispose()

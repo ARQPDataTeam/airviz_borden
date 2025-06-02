@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
-def fig_generator(start_date,end_date,sql_query,sql_engine):
+def time_series_generator(start_date,end_date,sql_query,sql_engine):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
