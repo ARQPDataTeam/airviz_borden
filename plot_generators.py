@@ -80,3 +80,16 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
     return fig
 
+def profile_generator(date,sql_query,sql_engine):
+    
+    # set the path to the sql folder
+    sql_path='assets/sql_queries/'
+
+    # load the sql query
+    filename=sql_query+'.sql'
+    filepath=sql_path+filename
+    with open(filepath,'r') as f:
+        sql_query=f.read()
+
+
+#     with sql_engine.connect() as conn:
