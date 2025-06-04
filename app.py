@@ -11,6 +11,7 @@ from datetime import timedelta as td
 
 # local modules
 from plot_generators import time_series_generator
+from plot_generators import profile_generator
 from credentials import sql_engine_string_generator
 
 
@@ -21,22 +22,19 @@ sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_USER','D
 sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
-now=dt.today()
-start_date=(now-td(days=1)).strftime('%Y-%m-%d')
-end_date=now.strftime('%Y-%m-%d')
-
-# set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
 now=dt.today()
 start_date=(now-td(days=7)).strftime('%Y-%m-%d')
 end_date=now.strftime('%Y-%m-%d')
+start_time=(now-td(hours=1)).strftime('%h:%m')
+
 
 # set up the app layout
 app.layout = html.Div(children=
                     [
                     html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                    html.H3('Pick the desired date range.  This will apply to all plots on the page.'),
+                    html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
                     dcc.DatePickerRange(
                         id='date-picker',
                         min_date_allowed=first_date,
@@ -51,6 +49,8 @@ app.layout = html.Div(children=
                     html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0),href='#plot_3'),
                     html.Br(),
                     html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0),href='#plot_4'),
+                    html.Br(),
+                    html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0),href='#plot_5'),
                     html.Br(),
                     html.H2('Borden CR3000 Temperatures Display'),
                     html.A(id="anchor_1"),
@@ -69,6 +69,17 @@ app.layout = html.Div(children=
                     html.H2(children=['Borden Water Vapour Display']),
                     html.A(id="anchor_4"),
                     dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine)),
+                    html.Br(),
+                    html.H2(children=['Borden Tower Measurements']),
+                    html.A(id="anchor_5"),
+                    dcc.Graph(id='plot_5',figure=profile_generator('q_profile_last_available_cycle',sql_engine)),
+                    # html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
+                    # dcc.DatePickerRange(
+                    #     id='profile_date-picker',
+                    #     min_date_allowed=first_date,
+                    #     max_date_allowed=end_date,
+                    #     display_format='YYYY-MM-DD'
+                    # ),
                     ] 
                     )
 
@@ -93,6 +104,6 @@ def update_output(start_date,end_date):
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
-sql_engine.dispose()
+# sql_engine.dispose()
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
