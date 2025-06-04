@@ -55,6 +55,7 @@ app.layout = html.Div(children=
                     html.H2('Borden CR3000 Temperatures Display'),
                     html.A(id="anchor_1"),
                     dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine)),
+                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1',sql_engine)),
                     html.Br(),
                     html.H2(children=['Borden CSAT Temperatures Display']),
                     html.Br(),
