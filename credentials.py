@@ -4,7 +4,7 @@ from azure.keyvault.secrets import SecretClient
 import os
 from dotenv import load_dotenv 
 
-def sql_engine_string_generator(datahub_host, datahub_user, datahub_pwd, datahub_db): 
+def sql_engine_string_generator(qp_host,datahub_host, datahub_user, datahub_pwd, datahub_db): 
 
     # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
     try:
@@ -33,7 +33,7 @@ def sql_engine_string_generator(datahub_host, datahub_user, datahub_pwd, datahub
         # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
         parent_dir=os.path.dirname(os.getcwd())
         load_dotenv(os.path.join(parent_dir, '.env')) # default is relative local directory 
-        DB_HOST = os.getenv(datahub_host)
+        DB_HOST = os.getenv(qp_host)
         DB_USER = os.getenv(datahub_user)
         DB_PASS = os.getenv(datahub_pwd)
         print ('Credentials loaded locally')
