@@ -4,7 +4,7 @@ from azure.keyvault.secrets import SecretClient
 import os
 from dotenv import load_dotenv 
 
-def sql_engine_string_generator(qp_host,datahub_host, datahub_user, datahub_pwd, datahub_db): 
+def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd, datahub_db): 
 
     # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
     try:
