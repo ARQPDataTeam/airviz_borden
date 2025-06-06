@@ -2,7 +2,7 @@ import pandas as pd
 from ast import literal_eval
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os
+from sqlalchemy import text
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -91,12 +91,26 @@ def profile_generator(sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
-    # sql query if selectable time is used
-    # sql_query=(sql_query).format(start_date,end_date)
+    sql_time_query = """
+    WITH time_bounds AS (
+        SELECT 
+            to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
+            to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
+        FROM bor__profile_v0
+    )
+    SELECT * FROM time_bounds;
+    """
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
         output_df=pd.read_sql_query(sql_query, conn)
+        result = conn.execute(text(sql_time_query)).fetchone()
+
+    # Access as tuple or named columns
+    start_time, end_time = result[0], result[1]
+    print("Start time:", start_time)
+    print("End time:", end_time)    
+
 
     # print (output_df)
     output_df.columns=['species',1,5,16,26,33,42]
@@ -195,7 +209,7 @@ def profile_generator(sql_query,sql_engine):
     # === Layout for all x-axes ===
     fig.update_layout(
         height=600,
-        title='Borden Tower Concentration Profiles',
+        title=('Average Borden Tower Concentration Profiles From '+start_time+' to '+end_time),
         title_x=0.5,  # Center the title horizontally
 
     # X-Axes
