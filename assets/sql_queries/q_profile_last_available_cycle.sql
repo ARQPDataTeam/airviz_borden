@@ -1,5 +1,5 @@
 SET TIME ZONE 'GMT';
-WITH myconstants (start_time , end_time) as (SELECT {}::timestamp, {}::timestamp)
+WITH myconstants (start_time , end_time) as (SELECT max(datetime)::timestamp - INTERVAL '1 hour', max(datetime)::timestamp FROM bor__profile_v0 )
 	SELECT 'OCS_LGR' AS col, max(l1) AS L1, max(l2) AS L2, max(l3) AS L3, max(l4) AS L4, max(l5) AS L5, max(l6) AS L6
 	FROM (
 		SELECT  dt

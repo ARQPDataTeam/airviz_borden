@@ -2,7 +2,7 @@ import pandas as pd
 from ast import literal_eval
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os
+from sqlalchemy import text
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -80,8 +80,8 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
     return fig
 
-def profile_generator(date,sql_query,sql_engine):
-    
+def profile_generator(sql_query,sql_engine):
+
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
 
@@ -91,5 +91,172 @@ def profile_generator(date,sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
+    sql_time_query = """
+    WITH time_bounds AS (
+        SELECT 
+            to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
+            to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
+        FROM bor__profile_v0
+    )
+    SELECT * FROM time_bounds;
+    """
 
-#     with sql_engine.connect() as conn:
+    with sql_engine.connect() as conn:
+    # create the dataframes from the sql query
+        output_df=pd.read_sql_query(sql_query, conn)
+        result = conn.execute(text(sql_time_query)).fetchone()
+
+    # Access as tuple or named columns
+    start_time, end_time = result[0], result[1]
+    print("Start time:", start_time)
+    print("End time:", end_time)    
+
+
+    # print (output_df)
+    output_df.columns=['species',1,5,16,26,33,42]
+    output_df.set_index('species', drop=True, inplace=True)
+    # print (output_df)
+    # Transpose: heights become rows, species become columns
+    output_df = output_df.T
+    output_df.index = output_df.index.astype(float)  # height as float
+
+    # Separate species into primary and secondary
+    o3_species = [ 'O3' ]
+    co2_species = ['CO2_LIC', 'CO2d_LGR', 'CO2d_PIC']
+    ch4_species = ['CH4d_PIC', 'COd_LGR']
+    h2o_species = ['H2O_LGR', 'H2O_LIC', 'H2O_PIC']
+    ocs_species = ['OCS_LGR']
+
+    # sub-select the dataframe into smaller sets organized by concentration scale
+    o3_df=output_df[o3_species]
+    co2_df=output_df[co2_species]
+    ch4_df=output_df[ch4_species]
+    h2o_df=output_df[h2o_species]
+    h2o_df.loc[:, 'H2O_PIC'] = h2o_df['H2O_PIC'] * 10
+    h2o_df = output_df[h2o_species].copy()
+    h2o_df['H2O_PIC'] *= 10  # scale
+    ocs_df = output_df[ocs_species]
+
+    # set a colour list
+    plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
+
+
+    # create the fig properties
+    fig = make_subplots(rows=1, cols=5, column_widths=[0.18, 0.18, 0.18, 0.18, 0.18], shared_yaxes=True)
+
+    # === PANEL 1 CH4 and CO ===
+    fig.add_trace(go.Scatter(
+        x=o3_df['O3'],
+        y=o3_df.index,
+        mode='lines+markers',
+        line=dict(color=plot_color_list[0]),
+        name='O3 (ppbv)',
+        legendgroup='panel1',
+        showlegend=True
+    ), row=1, col=1)
+
+    # === PANEL 2 CO2 group ===
+    for i, species in enumerate(co2_species):
+        fig.add_trace(go.Scatter(
+            x=co2_df[species],
+            y=co2_df.index,
+            mode='lines+markers',
+            line=dict(color=plot_color_list[i+1]),
+            name=species,
+            # xaxis='x',
+            legendgroup='panel2',
+            showlegend=True
+        ), row=1, col=2)
+
+    # === PANEL 3 CH4 group ===
+    for i, species in enumerate(['CH4d_PIC','COd_LGR']):
+        fig.add_trace(go.Scatter(
+            x=ch4_df[species],
+            y=ch4_df.index,
+            mode='lines+markers',
+            line=dict(color=plot_color_list[i+3]),
+            name=species,
+            # xaxis='x2',
+            legendgroup='panel3',
+            showlegend=True
+        ), row=1, col=3)
+
+    # === PANEL 4 H2O group ===
+    for i, species in enumerate(['H2O_LGR', 'H2O_LIC', 'H2O_PIC']):
+        fig.add_trace(go.Scatter(
+            x=h2o_df[species],
+            y=h2o_df.index,
+            mode='lines+markers',
+            line=dict(color=plot_color_list[i]),
+            name=species,
+            # xaxis='x3',
+            legendgroup='panel4',
+            showlegend=True
+        ), row=1, col=4)
+
+    # === PANEL 5 OCS ===
+    fig.add_trace(go.Scatter(
+        x=ocs_df['OCS_LGR'],
+        y=ocs_df.index,
+        mode='lines+markers',
+        line=dict(color=plot_color_list[3]),
+        name='OCS_LGR (pptv)',
+        # xaxis='x4',
+        legendgroup='panel5',
+        showlegend=True
+    ), row=1, col=5)
+
+    # === Layout for all x-axes ===
+    fig.update_layout(
+        height=600,
+        title=('Average Borden Tower Concentration Profiles From '+start_time+' to '+end_time),
+        title_x=0.5,  # Center the title horizontally
+
+    # X-Axes
+        xaxis=dict(title='O3 (ppbv)', side='bottom'),         # col=1
+        xaxis2=dict(title='CO2 (ppmv)', side='bottom'),   # col=2
+        xaxis3=dict(title='CH4 / CO (ppmv)', side='bottom'),   # col=3
+        xaxis4=dict(title='H2O (ppthv)', side='bottom'),  # col=4
+        xaxis5=dict(title='OCS (ppthv)', side='bottom'),  # col=5
+
+        # xaxis4=dict(
+        #     title=dict(
+        #         text='CH4d_PIC / COd_LGR (ppmv)',
+        #         font=dict(color='black')
+        #     ),
+        #     overlaying='x2',
+        #     side='top',
+        #     anchor='y',
+        #     range=[ch4_cod_min * 0.95, ch4_cod_max * 1.05],
+        #     tickmode='auto',
+        #     showgrid=False,
+        #     tickfont=dict(color='black')
+        # ),
+        # xaxis5=dict(
+        #     title=dict(
+        #         text='OCS_LGR (pptv)',
+        #         font=dict(color='black')
+        #     ),
+        #     overlaying='x3',
+        #     side='top',
+        #     anchor='y',
+        #     range=[ocs_min * 0.95, ocs_max * 1.05],
+        #     tickmode='auto',
+        #     showgrid=False,
+        #     tickfont=dict(color='black')
+        # ),
+        # Y-Axes
+        yaxis=dict(title='Height (m)'),   # col=1
+        # yaxis2=dict(title='Height (m)'),  # col=2
+        # yaxis3=dict(title='Height (m)')   # col=3
+
+        # Position legend to the right of all 3 panels
+            legend=dict(
+                x=1.05,
+                y=1,
+                tracegroupgap=20
+            ),
+            )
+
+    # return the fig
+    return fig
