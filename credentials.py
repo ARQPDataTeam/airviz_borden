@@ -4,7 +4,7 @@ from azure.keyvault.secrets import SecretClient
 import os
 from dotenv import load_dotenv 
 
-def sql_engine_string_generator(qp_host,datahub_host, datahub_user, datahub_pwd, datahub_db): 
+def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd, datahub_db): 
 
     # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
     try:
@@ -21,9 +21,6 @@ def sql_engine_string_generator(qp_host,datahub_host, datahub_user, datahub_pwd,
         DB_USER = secret_client.get_secret(datahub_user).value
         DB_PASS = secret_client.get_secret(datahub_pwd).value
         print ('Credentials loaded from FSDH')
-
-        print (DB_HOST)
-        print (DB_USER)
 
     except Exception as e:
         # declare FSDH keys exception

@@ -51,7 +51,6 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
             else:
                 fig.add_trace(
                     go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
-
  
         if secondary_y_flag: 
             # set axis titles
@@ -111,7 +110,6 @@ def profile_generator(sql_query,sql_engine):
     print("Start time:", start_time)
     print("End time:", end_time)    
 
-
     # print (output_df)
     output_df.columns=['species',1,5,16,26,33,42]
     output_df.set_index('species', drop=True, inplace=True)
@@ -132,14 +130,12 @@ def profile_generator(sql_query,sql_engine):
     co2_df=output_df[co2_species]
     ch4_df=output_df[ch4_species]
     h2o_df=output_df[h2o_species]
-    h2o_df.loc[:, 'H2O_PIC'] = h2o_df['H2O_PIC'] * 10
     h2o_df = output_df[h2o_species].copy()
     h2o_df['H2O_PIC'] *= 10  # scale
     ocs_df = output_df[ocs_species]
 
     # set a colour list
     plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
-
 
     # create the fig properties
     fig = make_subplots(rows=1, cols=5, column_widths=[0.18, 0.18, 0.18, 0.18, 0.18], shared_yaxes=True)
@@ -157,6 +153,7 @@ def profile_generator(sql_query,sql_engine):
 
     # === PANEL 2 CO2 group ===
     for i, species in enumerate(co2_species):
+        # print (co2_df[species])
         fig.add_trace(go.Scatter(
             x=co2_df[species],
             y=co2_df.index,
@@ -169,7 +166,8 @@ def profile_generator(sql_query,sql_engine):
         ), row=1, col=2)
 
     # === PANEL 3 CH4 group ===
-    for i, species in enumerate(['CH4d_PIC','COd_LGR']):
+    for i, species in enumerate(ch4_species):
+        # print (ch4_df[species])
         fig.add_trace(go.Scatter(
             x=ch4_df[species],
             y=ch4_df.index,
@@ -182,7 +180,8 @@ def profile_generator(sql_query,sql_engine):
         ), row=1, col=3)
 
     # === PANEL 4 H2O group ===
-    for i, species in enumerate(['H2O_LGR', 'H2O_LIC', 'H2O_PIC']):
+    for i, species in enumerate(h2o_species):
+        # print (h2o_df[species])
         fig.add_trace(go.Scatter(
             x=h2o_df[species],
             y=h2o_df.index,
