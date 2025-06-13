@@ -22,9 +22,6 @@ def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd
         DB_PASS = secret_client.get_secret(datahub_pwd).value
         print ('Credentials loaded from FSDH')
 
-        print (DB_HOST)
-        print (DB_USER)
-
     except Exception as e:
         # declare FSDH keys exception
         error_occur = True

@@ -30,6 +30,13 @@ end_date=now.strftime('%Y-%m-%d')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 
+######## temporary html output to screen ######
+html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{sql_engine_string}</p>"
+
+app.layout = html.Div([
+    html.Div(dangerouslySetInnerHTML={'__html': html_string})
+])
+"""
 # set up the app layout
 app.layout = html.Div(children=
                     [
@@ -103,7 +110,7 @@ def update_output(start_date,end_date):
         plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
-
+"""
 # sql_engine.dispose()
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
