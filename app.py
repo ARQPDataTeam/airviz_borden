@@ -31,10 +31,12 @@ start_time=(now-td(hours=1)).strftime('%h:%m')
 
 
 ######## temporary html output to screen ######
-html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{sql_engine_string}</p>"
+html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{}</p>".format(sql_engine_string)
 
 app.layout = html.Div([
-    html.Div(dangerouslySetInnerHTML={'__html': html_string})
+    html.Div(
+        html.H3(html_string)
+    )
 ])
 """
 # set up the app layout
