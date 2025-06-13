@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import text
 from datetime import datetime as dt
 from datetime import timedelta as td
+import socket
 
 
 # local modules
@@ -14,11 +15,18 @@ from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from credentials import sql_engine_string_generator
 
+# set a local switch to speed the credentials try/except up
+computer = socket.gethostname()
+if computer == 'WONTN74902':
+    local = True
+else:
+    local = False
+
 
 url_prefix = "/app/AQPDBOR/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # generate the sql connection string
-sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden')
+sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',local)
 sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
