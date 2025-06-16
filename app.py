@@ -24,7 +24,7 @@ else:
 
 
 #url_prefix = "/app/AQPDBOR/"
-url_prefix = "/app/AQPDDEV/"
+url_prefix = "/app/ARQPDEV/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # generate the sql connection string
 sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',local)
