@@ -30,6 +30,7 @@ app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[db
 
 # set logging output
 logging.getLogger("azure").setLevel(logging.DEBUG)
+print ('logging added')
 
 # generate the sql connection string
 sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',local)
