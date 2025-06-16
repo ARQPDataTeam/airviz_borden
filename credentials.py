@@ -10,7 +10,7 @@ def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd
     if not local:
         try:
             # set the key vault path
-            KEY_VAULT_URL = "https://fsdh-proj-aqpd-prd-kv.vault.azure.net/"
+            KEY_VAULT_URL = "https://fsdh-proj-aqpdbor-prd-kv.vault.azure.net/"
             error_occur = False
 
             # Retrieve the secrets containing DB connection details
