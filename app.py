@@ -21,7 +21,7 @@ computer = socket.gethostname()
 if computer == 'WONTN74902':
     local = True
 else:
-    local = False
+    local = True
 
 
 url_prefix = "/app/AQPDBOR/"
