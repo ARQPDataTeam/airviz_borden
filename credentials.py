@@ -2,32 +2,27 @@
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 import os
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
+import logging 
 
-def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd, datahub_db,local):
+def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd, datahub_db,fsdh,logger):
 
     # if the local switch is off, try to run through fsdh key vault
-    if not local:
+    if fsdh:
         try:
-            # set the key vault path
-            KEY_VAULT_URL = "https://fsdh-proj-aqpdbor-prd-kv.vault.azure.net/"
-            error_occur = False
-
-            # Retrieve the secrets containing DB connection details
-            credential = DefaultAzureCredential()
-            secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
-
-            # Retrieve the secrets containing DB connection details
-            DB_HOST = secret_client.get_secret(datahub_host).value
-            DB_USER = secret_client.get_secret(datahub_user).value
-            DB_PASS = secret_client.get_secret(datahub_pwd).value
+            DB_HOST = os.getenv(datahub_host)
+            DB_USER = os.getenv(datahub_user)
+            DB_PASS = os.getenv(datahub_pwd)
             
-            print ('Credentials loaded from FSDH')
+            logger.info('Credentials loaded from FSDH')
 
         except Exception as e:
+            logger.debug(f"{datahub_host}: {DB_HOST}")
+            logger.debug(f"{datahub_user}: {DB_USER}")
+            logger.debug(datahub_pwd)
             # declare FSDH keys exception
             error_occur = True
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
     
     else:
         # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
@@ -36,7 +31,10 @@ def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd
         DB_HOST = os.getenv(qp_host)
         DB_USER = os.getenv(datahub_user)
         DB_PASS = os.getenv(datahub_pwd)
-        print ('Credentials loaded locally')
+        logger.info('Credentials loaded locally')
+        logger.debug(f"{datahub_host}: {DB_HOST}")
+        logger.debug(f"{datahub_user}: {DB_USER}")
+        logger.debug(datahub_pwd)
 
     # set the sql engine string
     sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,datahub_db)

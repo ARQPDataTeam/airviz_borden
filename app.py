@@ -19,21 +19,27 @@ from credentials import sql_engine_string_generator
 # set a local switch to speed the credentials try/except up
 computer = socket.gethostname()
 if computer == 'WONTN74902':
-    local = True
+    fsdh = False
 else:
-    local = True
+    fsdh = True
 
 
 url_prefix = "/app/AQPDBOR/"
 # url_prefix = "/app/ARQPDEV/"
 app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# set logging output
-logging.getLogger("azure").setLevel(logging.DEBUG)
-print ('logging added')
+# configure a logger
+logger = logging.getLogger("azure")
+logger.setLevel(logging.DEBUG)
 
-# generate the sql connection string
-sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',local)
+# Create a console handler
+console_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# generate the sql connection string with the env variables to be passed to either local or azure OS, plus a logger object
+sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',fsdh,logger)
 sql_engine=create_engine(sql_engine_string)
 
 # set datetime parameters
@@ -107,7 +113,7 @@ app.layout = html.Div(children=
                     ] 
                     )
 
-print ('plot generated')
+logger.info('plot generated')
 @app.callback(
     Output('plot_1', 'figure'),
     Output('plot_2', 'figure'),
@@ -120,7 +126,7 @@ def update_output(start_date,end_date):
     if not start_date or not end_date:
         raise PreventUpdate
     else:
-        print ('Updating plot')
+        logger.info('Updating plot')
         plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
         plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
         plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
