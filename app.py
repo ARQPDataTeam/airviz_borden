@@ -1,141 +1,99 @@
-import dash
-from dash import Dash, html, dcc, callback 
-from dash.exceptions import PreventUpdate
-from dash.dependencies import Input, Output
+from dash import Dash, html, dcc 
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-from sqlalchemy import create_engine
-from sqlalchemy import text
-from datetime import datetime as dt
-from datetime import timedelta as td
-import socket
+# import pandas as pd
+# import numpy as np
+from sqlalchemy import create_engine,text
+from credentials import sql_engine_string_generator
+from flask import request
+from datetime import datetime
+# from azure.identity import DefaultAzureCredential
+# from azure.keyvault.secrets import SecretClient
+import os
+from dotenv import load_dotenv 
 import logging
 
+# Version number to display
+version = "1.3"
 
-# local modules
-from plot_generators import time_series_generator
-from plot_generators import profile_generator
-from credentials import sql_engine_string_generator
+# Setup logger
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+    
+logging.basicConfig(
+    format = '%(message)s',
+    filename='logs/log.log', 
+    filemode='w+',
+    level = 20)
 
-# set a local switch to speed the credentials try/except up
-computer = socket.gethostname()
-if computer == 'WONTN74902':
-    fsdh = False
-else:
-    fsdh = True
+#logging.getLogger("azure").setLevel(logging.ERROR)
+logging.getLogger("azure").setLevel(logging.DEBUG)
 
+#initialize the dash app as 'app'
+app = Dash(__name__,
+            external_stylesheets=[dbc.themes.SLATE],
+            requests_pathname_prefix="/app/AQPDBOR/",
+            routes_pathname_prefix="/app/AQPDBOR/")
+# app = Dash(__name__,
+#             external_stylesheets=[dbc.themes.SLATE])
 
-url_prefix = "/app/AQPDBOR/"
-# url_prefix = "/app/ARQPDEV/"
-app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
+# Global variable to store headers
+request_headers = {}
 
-# configure a logger
-logger = logging.getLogger("azure")
-logger.setLevel(logging.DEBUG)
+print ( 'python print: DATAHUB_PSQL_SERVER' )
 
-# Create a console handler
-console_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+# # Get connection string
+# sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_SWAPIT_DBNAME','DATAHUB_PSQL_EDITUSER','DATAHUB_PSQL_EDITPASSWORD')
+# swapit_sql_engine=create_engine(sql_engine_string)
 
-# generate the sql connection string with the env variables to be passed to either local or azure OS, plus a logger object
-sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',fsdh,logger)
-sql_engine=create_engine(sql_engine_string)
+#sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','dcp','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+# dcp_sql_engine=create_engine(sql_engine_string)
 
-# set datetime parameters
-first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
+MSG = " PYTHON START\n"
 
-now=dt.today()
-start_date=(now-td(days=7)).strftime('%Y-%m-%d')
-end_date=now.strftime('%Y-%m-%d')
-start_time=(now-td(hours=1)).strftime('%h:%m')
+try:
+    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+    DB_USER = os.getenv('DATAHUB_PSQL_USER')
+    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
+    # set the key vault path
+    # KEY_VAULT_URL = "https://fsdh-proj-aqpd-prd-kv.vault.azure.net/"
+    # error_occur = False
 
-# ######## temporary html output to screen ######
-html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{}</p>".format(sql_engine_string)
+    # # Retrieve the secrets containing DB connection details
+    # credential = DefaultAzureCredential()
+    # secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
 
-app.layout = html.Div([
-    html.Div(
-        html.H3(html_string)
-    )
-])
+    # # Retrieve the secrets containing DB connection details
+    # DB_HOST = secret_client.get_secret('DATAHUB_PSQL_SERVER').value
+    # DB_USER = secret_client.get_secret('DATAHUB_PSQL_USER').value
+    # DB_PASS = secret_client.get_secret('DATAHUB_PSQL_PASSWORD').value
+    # print ('Credentials loaded from FSDH')
+    MSG += "DB_HOST: "
+    MSG += DB_HOST
+    MSG += " :: \n"
+    MSG += "DB_USER: "
+    MSG += DB_USER
+    MSG += " :: \n"
 
-"""
+except Exception as e:
+    # declare FSDH keys exception
+    error_occur = True
+    print(f"An error occurred: {e}")
+    MSG += f"An error occurred: {e}\n"
 
-# set up the app layout
-app.layout = html.Div(children=
-                    [
-                    html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                    html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
-                    dcc.DatePickerRange(
-                        id='date-picker',
-                        min_date_allowed=first_date,
-                        max_date_allowed=end_date,
-                        display_format='YYYY-MM-DD'
-                    ),
-                    html.Br(),
-                    html.A(html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0),href='#plot_1'),
-                    html.Br(),
-                    html.A(html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0),href='#plot_2'),
-                    html.Br(),
-                    html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0),href='#plot_3'),
-                    html.Br(),
-                    html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0),href='#plot_4'),
-                    html.Br(),
-                    html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0),href='#plot_5'),
-                    html.Br(),
-                    html.H2('Borden CR3000 Temperatures Display'),
-                    html.A(id="anchor_1"),
-                    dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden CSAT Temperatures Display']),
-                    html.Br(),
-                    html.A(id="anchor_2"),
-                    dcc.Graph(id='plot_2',figure=time_series_generator(start_date,end_date,'plot_2',sql_engine)),
-                    html.Br(),
-                    html.H2('Borden Gases Display'),
-                    html.Br(),
-                    html.A(id="anchor_3"),
-                    dcc.Graph(id='plot_3',figure=time_series_generator(start_date,end_date,'plot_3',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden Water Vapour Display']),
-                    html.A(id="anchor_4"),
-                    dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden Tower Measurements']),
-                    html.A(id="anchor_5"),
-                    dcc.Graph(id='plot_5',figure=profile_generator('q_profile_last_available_cycle',sql_engine)),
-                    # html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
-                    # dcc.DatePickerRange(
-                    #     id='profile_date-picker',
-                    #     min_date_allowed=first_date,
-                    #     max_date_allowed=end_date,
-                    #     display_format='YYYY-MM-DD'
-                    # ),
-                    ] 
-                    )
+print ( 'python print: after kv try' )
 
-logger.info('plot generated')
-@app.callback(
-    Output('plot_1', 'figure'),
-    Output('plot_2', 'figure'),
-    Output('plot_3', 'figure'),
-    Output('plot_4', 'figure'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'))
+# for secret_properties in secret_client.list_properties_of_secrets():
+#     print(secret_properties.name)
 
-def update_output(start_date,end_date):
-    if not start_date or not end_date:
-        raise PreventUpdate
-    else:
-        logger.info('Updating plot')
-        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
-        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
-        plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
-        plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
+## + secret_client.list_properties_of_secrets()
+app.layout = [ html.Div(children= MSG ) ]
 
-    return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
-"""
-# sql_engine.dispose()
-if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+print ( 'python print: after app layout' )
+
+server = app.server 
+# if __name__=='__main__':
+#     app.run_server(debug=True,port=8080)
+
+print ( 'python print: after app loaded' )
