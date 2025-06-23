@@ -29,7 +29,7 @@ url_prefix = "/app/AQPDBOR/"
 
 if fsdh:
     app = dash.Dash(__name__, 
-                    url_base_pathname=url_prefix, 
+                    # url_base_pathname=url_prefix, 
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True,            
                     requests_pathname_prefix=url_prefix,
