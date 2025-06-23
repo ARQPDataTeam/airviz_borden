@@ -152,6 +152,8 @@ def update_output(start_date,end_date):
 """
 # sql_engine.dispose()
 
-server = app.server 
-# if __name__ == "__main__":
-#     app.run(debug=True, port=8080)
+if fsdh:
+    server = app.server
+else: 
+    if __name__ == "__main__":
+        app.run(debug=True, port=8080)
