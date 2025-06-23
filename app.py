@@ -29,7 +29,7 @@ url_prefix = "/app/AQPDBOR/"
 
 if fsdh:
     app = dash.Dash(__name__, 
-                    url_base_pathname=url_prefix, 
+                    # url_base_pathname=url_prefix, 
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True,            
                     requests_pathname_prefix=url_prefix,
@@ -152,6 +152,8 @@ def update_output(start_date,end_date):
 """
 # sql_engine.dispose()
 
-server = app.server 
-# if __name__ == "__main__":
-#     app.run(debug=True, port=8080)
+if fsdh:
+    server = app.server
+else: 
+    if __name__ == "__main__":
+        app.run(debug=True, port=8080)
