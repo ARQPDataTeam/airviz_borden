@@ -26,12 +26,21 @@ else:
 
 url_prefix = "/app/AQPDBOR/"
 # url_prefix = "/app/ARQPDEV/"
-app = dash.Dash(__name__, 
-                url_base_pathname=url_prefix, 
-                external_stylesheets=[dbc.themes.BOOTSTRAP],            
-                requests_pathname_prefix=url_prefix,
-                routes_pathname_prefix=url_prefix
-                )
+
+if fsdh:
+    app = dash.Dash(__name__, 
+                    url_base_pathname=url_prefix, 
+                    external_stylesheets=[dbc.themes.BOOTSTRAP],
+                    suppress_callback_exceptions=True,            
+                    requests_pathname_prefix=url_prefix,
+                    routes_pathname_prefix=url_prefix
+                    )
+else:
+    app = dash.Dash(__name__, 
+                    url_base_pathname=url_prefix,
+                    suppress_callback_exceptions=True
+                    ) 
+
 
 # configure a logger
 logger = logging.getLogger("azure")
@@ -142,5 +151,7 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 """
 # sql_engine.dispose()
-if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+
+server = app.server 
+# if __name__ == "__main__":
+#     app.run(debug=True, port=8080)
