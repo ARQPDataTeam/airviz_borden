@@ -26,7 +26,12 @@ else:
 
 url_prefix = "/app/AQPDBOR/"
 # url_prefix = "/app/ARQPDEV/"
-app = dash.Dash(__name__, url_base_pathname=url_prefix, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, 
+                url_base_pathname=url_prefix, 
+                external_stylesheets=[dbc.themes.BOOTSTRAP],            
+                requests_pathname_prefix=url_prefix,
+                routes_pathname_prefix=url_prefix
+                )
 
 # configure a logger
 logger = logging.getLogger("azure")
