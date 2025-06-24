@@ -28,7 +28,7 @@ def sql_engine_string_generator(qp_host, datahub_host, datahub_user, datahub_pwd
         # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
         parent_dir=os.path.dirname(os.getcwd())
         load_dotenv(os.path.join(parent_dir, '.env')) # default is relative local directory 
-        DB_HOST = os.getenv(qp_host)
+        DB_HOST = os.getenv(datahub_host)
         DB_USER = os.getenv(datahub_user)
         DB_PASS = os.getenv(datahub_pwd)
         logger.info('Credentials loaded locally')
