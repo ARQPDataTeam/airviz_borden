@@ -88,7 +88,7 @@ start_time=(now-td(hours=1)).strftime('%h:%m')
 
 
 ######## temporary html output to screen ######
-html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{}</p>".format(sql_engine_string)
+html_string = message
 
 app.layout = html.Div([
     html.Div(
