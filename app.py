@@ -1,5 +1,5 @@
 import dash
-from dash import Dash, html, dcc, callback 
+from dash import Dash, html, dcc, callback, dash_table 
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
@@ -11,6 +11,7 @@ from datetime import timedelta as td
 import socket
 import logging
 import os
+import pandas as pd
 
 
 # local modules
@@ -70,9 +71,15 @@ sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER',
 sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 
 MSG = " PYTHON START :: "
+
+sql_query="""SELECT column_name
+FROM information_schema.columns
+WHERE table_name = '{}'
+ORDER BY ordinal_position;""".format('bor__csat_v1__2024')
 try:
     with sql_engine.connect() as connection:
         message = "Connection successful!"
+        output=pd.read_sql_query(sql_query, connection)
 except OperationalError as e:
     print(f"Connection failed: {e}")
     message = f" :: An error occurred: {e}"
@@ -91,8 +98,12 @@ start_time=(now-td(hours=1)).strftime('%h:%m')
 html_string = message
 
 app.layout = html.Div([
-    html.Div(
-        html.H3(html_string)
+    html.H1("Borden Table Columns"),
+    dash_table.DataTable(
+        data=output.to_dict('records'),
+        columns=[{"name": i, "id": i} for i in output.columns],
+        style_table={'overflowX': 'auto'},
+        style_cell={'textAlign': 'left'}
     )
 ])
 
