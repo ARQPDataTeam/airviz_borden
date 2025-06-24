@@ -72,12 +72,12 @@ sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 MSG = " PYTHON START :: "
 try:
     with sql_engine.connect() as connection:
-        print("Connection successful!")
+        message = "Connection successful!"
 except OperationalError as e:
     print(f"Connection failed: {e}")
-    MSG += f" :: An error occurred: {e}"
+    message = f" :: An error occurred: {e}"
 
-"""
+
 # set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
@@ -87,17 +87,17 @@ end_date=now.strftime('%Y-%m-%d')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 
-# ######## temporary html output to screen ######
-# html_string = "<h2 style='color:green;'>This is rendered HTML</h2><p>{}</p>".format(sql_engine_string)
+######## temporary html output to screen ######
+html_string = message
 
-# app.layout = html.Div([
-#     html.Div(
-#         html.H3(html_string)
-#     )
-# ])
+app.layout = html.Div([
+    html.Div(
+        html.H3(html_string)
+    )
+])
 
 
-
+"""
 # set up the app layout
 app.layout = html.Div(children=
                     [
