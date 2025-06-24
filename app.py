@@ -5,10 +5,12 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from sqlalchemy import create_engine
 from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 from datetime import datetime as dt
 from datetime import timedelta as td
 import socket
 import logging
+import os
 
 
 # local modules
@@ -52,10 +54,30 @@ formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(messag
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-# generate the sql connection string with the env variables to be passed to either local or azure OS, plus a logger object
-sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',fsdh,logger)
-sql_engine=create_engine(sql_engine_string)
+# set up the sql connection string
+DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+DB_USER = os.getenv('DATAHUB_PSQL_USER')
+DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
+logger.info('Credentials loaded locally')
+logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
+logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
+
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
+
+# set up the engine
+sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',fsdh,logger)
+sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
+
+MSG = " PYTHON START :: "
+try:
+    with sql_engine.connect() as connection:
+        print("Connection successful!")
+except OperationalError as e:
+    print(f"Connection failed: {e}")
+    MSG += f" :: An error occurred: {e}"
+
+"""
 # set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
@@ -151,6 +173,7 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 # sql_engine.dispose()
+"""
 
 if fsdh:
     server = app.server
