@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 
-def time_series_generator(start_date,end_date,sql_query,sql_engine):
+def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
@@ -28,8 +28,8 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
 
     # sql query
     sql_query=(sql_query).format(start_date,end_date)
-    # print (sql_query)
-
+    logger.debug(sql_query)
+    
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
         output_df=pd.read_sql_query(sql_query, conn)
@@ -79,7 +79,7 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
     return fig
 
-def profile_generator(sql_query,sql_engine):
+def profile_generator(sql_query,sql_engine,logger):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
@@ -107,8 +107,6 @@ def profile_generator(sql_query,sql_engine):
 
     # Access as tuple or named columns
     start_time, end_time = result[0], result[1]
-    print("Start time:", start_time)
-    print("End time:", end_time)    
 
     # print (output_df)
     output_df.columns=['species',1,5,16,26,33,42]
@@ -217,37 +215,6 @@ def profile_generator(sql_query,sql_engine):
         xaxis3=dict(title='CH4 / CO (ppmv)', side='bottom'),   # col=3
         xaxis4=dict(title='H2O (ppthv)', side='bottom'),  # col=4
         xaxis5=dict(title='OCS (ppthv)', side='bottom'),  # col=5
-
-        # xaxis4=dict(
-        #     title=dict(
-        #         text='CH4d_PIC / COd_LGR (ppmv)',
-        #         font=dict(color='black')
-        #     ),
-        #     overlaying='x2',
-        #     side='top',
-        #     anchor='y',
-        #     range=[ch4_cod_min * 0.95, ch4_cod_max * 1.05],
-        #     tickmode='auto',
-        #     showgrid=False,
-        #     tickfont=dict(color='black')
-        # ),
-        # xaxis5=dict(
-        #     title=dict(
-        #         text='OCS_LGR (pptv)',
-        #         font=dict(color='black')
-        #     ),
-        #     overlaying='x3',
-        #     side='top',
-        #     anchor='y',
-        #     range=[ocs_min * 0.95, ocs_max * 1.05],
-        #     tickmode='auto',
-        #     showgrid=False,
-        #     tickfont=dict(color='black')
-        # ),
-        # Y-Axes
-        yaxis=dict(title='Height (m)'),   # col=1
-        # yaxis2=dict(title='Height (m)'),  # col=2
-        # yaxis3=dict(title='Height (m)')   # col=3
 
         # Position legend to the right of all 3 panels
             legend=dict(

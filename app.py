@@ -70,19 +70,19 @@ sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB
 sql_engine_string=sql_engine_string_generator('QP_SERVER','DATAHUB_PSQL_SERVER','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD','borden',fsdh,logger)
 sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 
-MSG = " PYTHON START :: "
+# MSG = " PYTHON START :: "
 
-sql_query="""SELECT column_name
-FROM information_schema.columns
-WHERE table_name = '{}'
-ORDER BY ordinal_position;""".format('bor__csat_v1__2024')
-try:
-    with sql_engine.connect() as connection:
-        message = "Connection successful!"
-        output=pd.read_sql_query(sql_query, connection)
-except OperationalError as e:
-    print(f"Connection failed: {e}")
-    message = f" :: An error occurred: {e}"
+# sql_query="""SELECT column_name
+# FROM information_schema.columns
+# WHERE table_name = '{}'
+# ORDER BY ordinal_position;""".format('bor__csat_v1__2024')
+# try:
+#     with sql_engine.connect() as connection:
+#         message = "Connection successful!"
+#         output=pd.read_sql_query(sql_query, connection)
+# except OperationalError as e:
+#     print(f"Connection failed: {e}")
+#     message = f" :: An error occurred: {e}"
 
 
 # set datetime parameters
@@ -94,21 +94,21 @@ end_date=now.strftime('%Y-%m-%d')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 
-######## temporary html output to screen ######
-html_string = message
+# ######## temporary html output to screen ######
+# html_string = message
 
-app.layout = html.Div([
-    html.H1("Borden Table Columns"),
-    dash_table.DataTable(
-        data=output.to_dict('records'),
-        columns=[{"name": i, "id": i} for i in output.columns],
-        style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'left'}
-    )
-])
+# app.layout = html.Div([
+#     html.H1("Borden Table Columns"),
+#     dash_table.DataTable(
+#         data=output.to_dict('records'),
+#         columns=[{"name": i, "id": i} for i in output.columns],
+#         style_table={'overflowX': 'auto'},
+#         style_cell={'textAlign': 'left'}
+#     )
+# ])
 
 
-"""
+
 # set up the app layout
 app.layout = html.Div(children=
                     [
@@ -133,58 +133,53 @@ app.layout = html.Div(children=
                     html.Br(),
                     html.H2('Borden CR3000 Temperatures Display'),
                     html.A(id="anchor_1"),
-                    dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden CSAT Temperatures Display']),
-                    html.Br(),
-                    html.A(id="anchor_2"),
-                    dcc.Graph(id='plot_2',figure=time_series_generator(start_date,end_date,'plot_2',sql_engine)),
-                    html.Br(),
-                    html.H2('Borden Gases Display'),
-                    html.Br(),
-                    html.A(id="anchor_3"),
-                    dcc.Graph(id='plot_3',figure=time_series_generator(start_date,end_date,'plot_3',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden Water Vapour Display']),
-                    html.A(id="anchor_4"),
-                    dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine)),
-                    html.Br(),
-                    html.H2(children=['Borden Tower Measurements']),
-                    html.A(id="anchor_5"),
-                    dcc.Graph(id='plot_5',figure=profile_generator('q_profile_last_available_cycle',sql_engine)),
-                    # html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
-                    # dcc.DatePickerRange(
-                    #     id='profile_date-picker',
-                    #     min_date_allowed=first_date,
-                    #     max_date_allowed=end_date,
-                    #     display_format='YYYY-MM-DD'
-                    # ),
-                    ] 
+                    ]
                     )
+                    # dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine,logger)),
+                    # html.Br(),
+                    # html.H2(children=['Borden CSAT Temperatures Display']),
+                    # html.Br(),
+                    # html.A(id="anchor_2"),
+                    # dcc.Graph(id='plot_2',figure=time_series_generator(start_date,end_date,'plot_2',sql_engine,logger)),
+                    # html.Br(),
+                    # html.H2('Borden Gases Display'),
+                    # html.Br(),
+                    # html.A(id="anchor_3"),
+                    # dcc.Graph(id='plot_3',figure=time_series_generator(start_date,end_date,'plot_3',sql_engine,logger)),
+                    # html.Br(),
+                    # html.H2(children=['Borden Water Vapour Display']),
+                    # html.A(id="anchor_4"),
+                    # dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine,logger)),
+                    # html.Br(),
+                    # html.H2(children=['Borden Tower Measurements']),
+                    # html.A(id="anchor_5"),
+                    # dcc.Graph(id='plot_5',figure=profile_generator('q_profile_last_available_cycle',sql_engine,logger)),
+                    # ] 
+                    # )
 
 logger.info('plot generated')
-@app.callback(
-    Output('plot_1', 'figure'),
-    Output('plot_2', 'figure'),
-    Output('plot_3', 'figure'),
-    Output('plot_4', 'figure'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'))
+# @app.callback(
+#     Output('plot_1', 'figure'),
+#     Output('plot_2', 'figure'),
+#     Output('plot_3', 'figure'),
+#     Output('plot_4', 'figure'),
+#     Input('date-picker', 'start_date'),
+#     Input('date-picker', 'end_date'))
 
-def update_output(start_date,end_date):
-    if not start_date or not end_date:
-        raise PreventUpdate
-    else:
-        logger.info('Updating plot')
-        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
-        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
-        plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
-        plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
+# def update_output(start_date,end_date):
+#     if not start_date or not end_date:
+#         raise PreventUpdate
+#     else:
+#         logger.info('Updating plot')
+#         plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
+#         plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
+#         plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
+#         plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
 
-    return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
+#     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 # sql_engine.dispose()
-"""
+
 
 if fsdh:
     server = app.server
