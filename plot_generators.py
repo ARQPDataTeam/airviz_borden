@@ -3,9 +3,6 @@ from ast import literal_eval
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sqlalchemy import text
-from dotenv import load_dotenv
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
 
 def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
 
@@ -28,7 +25,7 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
 
     # sql query
     sql_query=(sql_query).format(start_date,end_date)
-    logger.debug(sql_query)
+    # logger.debug(sql_query)
     
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
@@ -226,3 +223,6 @@ def profile_generator(sql_query,sql_engine,logger):
 
     # return the fig
     return fig
+
+# a function that returns a boolean set from an sql query
+def status_indicator(sql_query,sql_engine,logger):
