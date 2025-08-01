@@ -1,8 +1,11 @@
 import pandas as pd
 from ast import literal_eval
+from dash import html
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sqlalchemy import text
+from datetime import datetime as dt
+from datetime import timezone as tz
 
 def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
 
@@ -225,4 +228,75 @@ def profile_generator(sql_query,sql_engine,logger):
     return fig
 
 # a function that returns a boolean set from an sql query
-def status_indicator(sql_query,sql_engine,logger):
+def status_indicator(sql_query,sql_engine,logger,component_id='instrument-status-table'):
+
+    # set the path to the sql folder
+    sql_path='assets/sql_queries/'
+
+    # load the sql query
+    filename=sql_query+'.sql'
+    filepath=sql_path+filename
+    with open(filepath,'r') as f:
+        sql_query=f.read()
+
+    sql_status_query = """
+        SET TIME ZONE 'GMT';
+        SELECT MAX(datetime) AS last_datetime, 'CR3000' AS source FROM bor__cr3000_v0
+        UNION ALL
+        SELECT MAX(datetime), 'CR23X Temp' FROM bor__cr23x_m_v0
+        UNION ALL
+        SELECT MAX(datetime), 'CSAT' FROM bor__csat_m_v0
+        UNION ALL
+        SELECT MAX(datetime), 'Licor' FROM bor__lic7000_p_v0
+        UNION ALL
+        SELECT MAX(datetime), 'LGR' FROM bor__lgrocs_v0
+        UNION ALL
+        SELECT MAX(datetime), 'T49i' FROM bor__t49i_v0
+        UNION ALL
+        SELECT MAX(datetime), 'Picarro' FROM bor__g2311f_m_v0;
+        """
+    with sql_engine.connect() as conn:
+    # create the dataframes from the sql query
+        status_df = pd.read_sql_query(sql_query, conn)
+
+    status_df.set_index('source', drop=True, inplace=True)
+    # Ensure 'last_datetime' is a datetime dtype
+    status_df['last_datetime'] = pd.to_datetime(status_df['last_datetime'])
+
+    # Get current time in GMT (UTC)
+    now = dt.now(tz.utc)
+
+    # Function to classify status
+    def get_status(last_time):
+        delta_hours = (now - last_time).total_seconds() / 3600
+        if delta_hours < 1.5:
+            return 'green'
+        elif delta_hours <= 24:
+            return 'yellow'
+        else:
+            return 'red'
+
+    # Apply function to dataframe
+    status_df['status'] = status_df['last_datetime'].apply(get_status)
+
+    # Create a Dash HTML table with color boxes
+    table_rows = []
+    for source, row in status_df.iterrows():
+        color = row['status']
+        table_rows.append(
+            html.Tr([
+                html.Td(source),
+                html.Td(style={
+                    'backgroundColor': color,
+                    'width': '20px',
+                    'height': '20px',
+                    'borderRadius': '4px'
+                })
+            ])
+        )
+
+    return html.Div([
+        html.H4("Instrument Status", style={'textAlign': 'center'}),
+        html.Table(table_rows, style={'width': '100%', 'marginTop': '10px'})
+    ], id=component_id)
+

@@ -17,6 +17,7 @@ import pandas as pd
 # local modules
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
+from plot_generators import status_indicator
 
 # set a local switch to speed the credentials try/except up
 computer = socket.gethostname()
@@ -38,6 +39,7 @@ if fsdh:
 else:
     app = dash.Dash(__name__, 
                     url_base_pathname=url_prefix,
+                    external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True
                     ) 
 
@@ -56,9 +58,9 @@ DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
 DB_USER = os.getenv('DATAHUB_PSQL_USER')
 DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
-logger.info('Credentials loaded locally')
-logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
-logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
+# logger.info('Credentials loaded locally')
+# logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
+# logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
@@ -73,45 +75,60 @@ end_date=now.strftime('%Y-%m-%d')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 # set up the app layout
-app.layout = html.Div(
-                    [
-                    html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                    html.H3('Pick the desired date range.  This will apply to all time plots on the page.'),
-                    dcc.DatePickerRange(
-                        id='date-picker',
-                        min_date_allowed=first_date,
-                        max_date_allowed=end_date,
-                        display_format='YYYY-MM-DD'
-                    ),
-                    html.Br(),
-                    html.A(html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0),href='#plot_1'),
-                    html.Br(),
-                    html.A(html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0),href='#plot_2'),
-                    html.Br(),
-                    html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0),href='#plot_3'),
-                    html.Br(),
-                    html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0),href='#plot_4'),
-                    html.Br(),
-                    html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0),href='#plot_5'),
-                    html.Br(),
-                    html.H2('Borden CR3000 Temperatures Display'),
-                    dcc.Graph(id='plot_1',figure=time_series_generator(start_date,end_date,'plot_1',sql_engine,logger)),
-                    html.Br(),
-                    html.H2(children=['Borden CSAT Temperatures Display']),
-                    html.Br(),
-                    dcc.Graph(id='plot_2',figure=time_series_generator(start_date,end_date,'plot_2',sql_engine,logger)),
-                    html.Br(),
-                    html.H2('Borden Gases Display'),
-                    html.Br(),
-                    dcc.Graph(id='plot_3',figure=time_series_generator(start_date,end_date,'plot_3',sql_engine,logger)),
-                    html.Br(),
-                    html.H2(children=['Borden Water Vapour Display']),
-                    dcc.Graph(id='plot_4',figure=time_series_generator(start_date,end_date,'plot_4',sql_engine,logger)),
-                    html.Br(),
-                    html.H2(children=['Borden Tower Measurements']),
-                    dcc.Graph(id='plot_5',figure=profile_generator('q_profile_last_available_cycle',sql_engine,logger)),
-                    ] 
-                    )
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col(  # LEFT: Status Indicator (2/12 width)
+            status_indicator('status_indicator', sql_engine, logger),  # your function
+            width=2,
+            style={
+                'backgroundColor': '#f8f9fa',
+                'padding': '10px',
+                'borderRight': '1px solid #dee2e6',
+                'height': '100vh',
+                'overflowY': 'auto'
+            }
+        ),
+        dbc.Col(  # RIGHT: Main Dashboard (10/12 width)
+            html.Div([
+                html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
+                html.H3('Pick the desired date range. This will apply to all time plots on the page.'),
+                dcc.DatePickerRange(
+                    id='date-picker',
+                    min_date_allowed=first_date,
+                    max_date_allowed=end_date,
+                    display_format='YYYY-MM-DD'
+                ),
+                html.Br(),
+                html.A(html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0), href='#plot_1'),
+                html.Br(),
+                html.A(html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0), href='#plot_2'),
+                html.Br(),
+                html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0), href='#plot_3'),
+                html.Br(),
+                html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0), href='#plot_4'),
+                html.Br(),
+                html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0), href='#plot_5'),
+                html.Br(),
+                html.H2('Borden CR3000 Temperatures Display'),
+                dcc.Graph(id='plot_1', figure=time_series_generator(start_date, end_date, 'plot_1', sql_engine, logger)),
+                html.Br(),
+                html.H2('Borden CSAT Temperatures Display'),
+                dcc.Graph(id='plot_2', figure=time_series_generator(start_date, end_date, 'plot_2', sql_engine, logger)),
+                html.Br(),
+                html.H2('Borden Gases Display'),
+                dcc.Graph(id='plot_3', figure=time_series_generator(start_date, end_date, 'plot_3', sql_engine, logger)),
+                html.Br(),
+                html.H2('Borden Water Vapour Display'),
+                dcc.Graph(id='plot_4', figure=time_series_generator(start_date, end_date, 'plot_4', sql_engine, logger)),
+                html.Br(),
+                html.H2('Borden Tower Measurements'),
+                dcc.Graph(id='plot_5', figure=profile_generator('q_profile_last_available_cycle', sql_engine, logger))
+            ]),
+            width=10,
+            style={'padding': '20px'}
+        )
+    ])
+], fluid=True)
 
 logger.info('plot generated')
 @app.callback(
@@ -134,10 +151,11 @@ def update_output(start_date,end_date):
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
-sql_engine.dispose()
+
 
 if fsdh:
     server = app.server
 else: 
     if __name__ == "__main__":
-        app.run(debug=True, port=8080)
+        app.run(port=8080)
+        sql_engine.dispose()
