@@ -59,7 +59,7 @@ DB_USER = os.getenv('DATAHUB_PSQL_USER')
 DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
 # logger.info('Credentials loaded locally')
-# logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
+logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
 # logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
 
 # set up the engine
