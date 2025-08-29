@@ -108,6 +108,11 @@ def profile_generator(sql_query,sql_engine,logger):
     # Access as tuple or named columns
     start_time, end_time = result[0], result[1]
 
+    if start_time is None or end_time is None:
+        profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
+    else:
+        profile_title = f"Average Borden Tower Concentration Profiles From {start_time} to {end_time}"
+
     # print (output_df)
     output_df.columns=['species',1,5,16,26,33,42]
     output_df.set_index('species', drop=True, inplace=True)
@@ -206,7 +211,7 @@ def profile_generator(sql_query,sql_engine,logger):
     # === Layout for all x-axes ===
     fig.update_layout(
         height=600,
-        title=('Average Borden Tower Concentration Profiles From '+start_time+' to '+end_time),
+        title=(profile_title),
         title_x=0.5,  # Center the title horizontally
 
     # X-Axes

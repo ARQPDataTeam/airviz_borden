@@ -60,7 +60,7 @@ DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
 # logger.info('Credentials loaded locally')
 logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
-# logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
+logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
