@@ -275,22 +275,6 @@ def status_indicator(sql_query,sql_engine,component_id='instrument-status-table'
     with open(filepath,'r') as f:
         sql_query=f.read()
 
-    sql_status_query = """
-        SET TIME ZONE 'GMT';
-        SELECT MAX(datetime) AS last_datetime, 'CR3000' AS source FROM bor__cr3000_v0
-        UNION ALL
-        SELECT MAX(datetime), 'CR23X Temp' FROM bor__cr23x_m_v0
-        UNION ALL
-        SELECT MAX(datetime), 'CSAT' FROM bor__csat_m_v0
-        UNION ALL
-        SELECT MAX(datetime), 'Licor' FROM bor__lic7000_p_v0
-        UNION ALL
-        SELECT MAX(datetime), 'LGR' FROM bor__lgrocs_v0
-        UNION ALL
-        SELECT MAX(datetime), 'T49i' FROM bor__t49i_v0
-        UNION ALL
-        SELECT MAX(datetime), 'Picarro' FROM bor__g2311f_m_v0;
-        """
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
         status_df = pd.read_sql_query(sql_query, conn)
@@ -307,7 +291,7 @@ def status_indicator(sql_query,sql_engine,component_id='instrument-status-table'
         delta_hours = (now - last_time).total_seconds() / 3600
         if delta_hours < 1.5:
             return 'green'
-        elif delta_hours <= 24:
+        elif 1.5 <= delta_hours <= 24:
             return 'yellow'
         else:
             return 'red'
@@ -321,18 +305,96 @@ def status_indicator(sql_query,sql_engine,component_id='instrument-status-table'
         color = row['status']
         table_rows.append(
             html.Tr([
-                html.Td(source),
-                html.Td(style={
-                    'backgroundColor': color,
-                    'width': '20px',
-                    'height': '20px',
-                    'borderRadius': '4px'
-                })
+                html.Td(source, style={"padding": "4px 8px"}),
+                html.Td(
+                    html.Div(style={
+                        "backgroundColor": color,
+                        "width": "32px",
+                        "height": "16px",
+                        "borderRadius": "4px",
+                        "display": "inline-block"
+                    }),
+                    style={
+                        "padding": "0",
+                        "textAlign": "center",
+                        "width": "24px",     # lock the indicator col width
+                        "minWidth": "24px",
+                        "maxWidth": "24px",
+                    }
+                )
             ])
         )
 
-    return html.Div([
-        html.H4("Instrument Status", style={'textAlign': 'center'}),
-        html.Table(table_rows, style={'width': '100%', 'marginTop': '10px'})
-    ], id=component_id)
+    legend_rows = []
 
+    # spacer row
+    legend_rows.append(html.Tr([
+        html.Td(" ", style={"padding": "6px 8px"}),
+        html.Td(" ", style={"padding": "2px"})
+    ]))
+
+    # green row
+    legend_rows.append(html.Tr([
+        html.Td("Timestamp < 1.5 hr ago", style={"padding": "2px 8px"}),
+        html.Td(
+            html.Div(style={
+                "backgroundColor": "green",
+                "width": "32px",
+                "height": "16px",
+                "borderRadius": "4px",
+                "display": "inline-block"
+            }),
+            style={"padding": "0", "textAlign": "center", "width": "24px"}
+        )
+    ]))
+
+    # yellow row
+    legend_rows.append(html.Tr([
+        html.Td("Timestamp 1.5 < 24 hr ago", style={"padding": "2px 8px"}),
+        html.Td(
+            html.Div(style={
+                "backgroundColor": "yellow",
+                "width": "32px",
+                "height": "16px",
+                "borderRadius": "4px",
+                "display": "inline-block"
+            }),
+            style={"padding": "0", "textAlign": "center", "width": "24px"}
+        )
+    ]))
+
+    # red row
+    legend_rows.append(html.Tr([
+        html.Td("Timestamp > 24 hr ago", style={"padding": "2px 8px"}),
+        html.Td(
+            html.Div(style={
+                "backgroundColor": "red",
+                "width": "32px",
+                "height": "16px",
+                "borderRadius": "4px",
+                "display": "inline-block"
+            }),
+            style={"padding": "0", "textAlign": "center", "width": "24px"}
+        )
+    ]))
+
+    # now return full table
+    return html.Div([
+        html.H4("Instrument Status", style={"textAlign": "center"}),
+        html.Table(
+            [
+                html.Tbody(table_rows),  # your instrument rows
+                html.Tbody(legend_rows, style={
+                    "borderTop": "1px solid #ccc",
+                    "backgroundColor": "#f9f9f9"
+                })
+            ],
+            style={
+                "width": "100%",
+                "marginTop": "10px",
+                "borderCollapse": "separate",
+                "borderSpacing": "0 6px",
+                "tableLayout": "fixed"
+            }
+        )
+    ], id=component_id)
