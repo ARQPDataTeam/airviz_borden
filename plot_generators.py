@@ -6,8 +6,13 @@ from plotly.subplots import make_subplots
 from sqlalchemy import text
 from datetime import datetime as dt
 from datetime import timezone as tz
+import re
+import logging
 
-def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
+logger = logging.getLogger(__name__)
+
+def time_series_generator(start_date,end_date,sql_query,sql_engine):
+    
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
@@ -79,7 +84,7 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine,logger):
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
     return fig
 
-def profile_generator(sql_query,sql_engine,logger):
+def profile_generator(sql_query,sql_engine):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'
@@ -108,20 +113,37 @@ def profile_generator(sql_query,sql_engine,logger):
     # Access as tuple or named columns
     start_time, end_time = result[0], result[1]
 
-    # print (output_df)
-    output_df.columns=['species',1,5,16,26,33,42]
-    output_df.set_index('species', drop=True, inplace=True)
-    # print (output_df)
-    # Transpose: heights become rows, species become columns
-    output_df = output_df.T
+    if start_time is None or end_time is None:
+        profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
+    else:
+        profile_title = f"Average Borden Tower Concentration Profiles From {start_time} to {end_time}"
+    
+    # logger.debug("\noutput:\n%s", output_df)
+
+    output_df.index = [1,5,16,26,33,42]
     output_df.index = output_df.index.astype(float)  # height as float
 
+    temp_cols = [col for col in output_df.columns if 'temp' in col]
+    temp_df = output_df[temp_cols].mean(axis=0)
+
+    logger.debug(temp_df)
+
+    # Reindex with int depths
+    temp_df.index = [int(re.search(r'(\d+)m', item).group(1)) for item in temp_df.index]
+    
+    # Transpose: heights become rows, species become columns
+    temp_df = temp_df.T
+
+    temp_df.reindex
+
+    logger.debug("\ntemp df:\n%s", temp_df)
+
     # Separate species into primary and secondary
-    o3_species = [ 'O3' ]
-    co2_species = ['CO2_LIC', 'CO2d_LGR', 'CO2d_PIC']
-    ch4_species = ['CH4d_PIC', 'COd_LGR']
-    h2o_species = ['H2O_LGR', 'H2O_LIC', 'H2O_PIC']
-    ocs_species = ['OCS_LGR']
+    o3_species = [ 'o3' ]
+    co2_species = ['lic_co2', 'lgr_co2', 'pic_co2']
+    ch4_species = ['pic_ch4', 'lgr_co']
+    h2o_species = ['lgr_h2o', 'lic_h2o', 'pic_h2o']
+    ocs_species = ['lgr_ocs']
 
     # sub-select the dataframe into smaller sets organized by concentration scale
     o3_df=output_df[o3_species]
@@ -129,18 +151,18 @@ def profile_generator(sql_query,sql_engine,logger):
     ch4_df=output_df[ch4_species]
     h2o_df=output_df[h2o_species]
     h2o_df = output_df[h2o_species].copy()
-    h2o_df['H2O_PIC'] *= 10  # scale
+    h2o_df['pic_h2o'] *= 10  # scale
     ocs_df = output_df[ocs_species]
 
     # set a colour list
     plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
 
     # create the fig properties
-    fig = make_subplots(rows=1, cols=5, column_widths=[0.18, 0.18, 0.18, 0.18, 0.18], shared_yaxes=True)
+    fig = make_subplots(rows=1, cols=6, column_widths=6*[0.16], shared_yaxes=False)
 
     # === PANEL 1 CH4 and CO ===
     fig.add_trace(go.Scatter(
-        x=o3_df['O3'],
+        x=o3_df['o3'],
         y=o3_df.index,
         mode='lines+markers',
         line=dict(color=plot_color_list[0]),
@@ -193,7 +215,7 @@ def profile_generator(sql_query,sql_engine,logger):
 
     # === PANEL 5 OCS ===
     fig.add_trace(go.Scatter(
-        x=ocs_df['OCS_LGR'],
+        x=ocs_df['lgr_ocs'],
         y=ocs_df.index,
         mode='lines+markers',
         line=dict(color=plot_color_list[3]),
@@ -203,18 +225,32 @@ def profile_generator(sql_query,sql_engine,logger):
         showlegend=True
     ), row=1, col=5)
 
+    # === PANEL 6 TEMP ===
+    fig.add_trace(go.Scatter(
+        x=temp_df,
+        y=temp_df.index,
+        mode='lines+markers',
+        line=dict(color=plot_color_list[0]),
+        name='Temperature (C)',
+        # xaxis='x4',
+        legendgroup='panel6',
+        showlegend=True
+    ), row=1, col=6)
+
+
     # === Layout for all x-axes ===
     fig.update_layout(
         height=600,
-        title=('Average Borden Tower Concentration Profiles From '+start_time+' to '+end_time),
+        title=(profile_title),
         title_x=0.5,  # Center the title horizontally
 
     # X-Axes
-        xaxis=dict(title='O3 (ppbv)', side='bottom'),         # col=1
-        xaxis2=dict(title='CO2 (ppmv)', side='bottom'),   # col=2
-        xaxis3=dict(title='CH4 / CO (ppmv)', side='bottom'),   # col=3
+        xaxis=dict(title='O3 (ppbv)', side='bottom'),  # col=1
+        xaxis2=dict(title='CO2 (ppmv)', side='bottom'),  # col=2
+        xaxis3=dict(title='CH4 / CO (ppmv)', side='bottom'),  # col=3
         xaxis4=dict(title='H2O (ppthv)', side='bottom'),  # col=4
         xaxis5=dict(title='OCS (ppthv)', side='bottom'),  # col=5
+        xaxis6=dict(title='Temperature (C)', side='bottom'),  # col=6
 
         # Position legend to the right of all 3 panels
             legend=dict(
@@ -228,7 +264,7 @@ def profile_generator(sql_query,sql_engine,logger):
     return fig
 
 # a function that returns a boolean set from an sql query
-def status_indicator(sql_query,sql_engine,logger,component_id='instrument-status-table'):
+def status_indicator(sql_query,sql_engine,component_id='instrument-status-table'):
 
     # set the path to the sql folder
     sql_path='assets/sql_queries/'

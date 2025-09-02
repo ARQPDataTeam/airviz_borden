@@ -43,15 +43,12 @@ else:
                     suppress_callback_exceptions=True
                     ) 
 
-# configure a logger
-logger = logging.getLogger("azure")
-logger.setLevel(logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(message)s"
+)
 
-# Create a console handler
-console_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+logger = logging.getLogger(__name__)
 
 # set up the sql connection string
 DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
@@ -60,7 +57,7 @@ DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
 
 # logger.info('Credentials loaded locally')
 logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
-# logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
+logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
@@ -78,7 +75,7 @@ start_time=(now-td(hours=1)).strftime('%h:%m')
 app.layout = dbc.Container([
     dbc.Row([
         dbc.Col(  # LEFT: Status Indicator (2/12 width)
-            status_indicator('status_indicator', sql_engine, logger),  # your function
+            status_indicator('status_indicator', sql_engine),  # your function
             width=2,
             style={
                 'backgroundColor': '#f8f9fa',
@@ -110,19 +107,19 @@ app.layout = dbc.Container([
                 html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0), href='#plot_5'),
                 html.Br(),
                 html.H2('Borden CR3000 Temperatures Display'),
-                dcc.Graph(id='plot_1', figure=time_series_generator(start_date, end_date, 'plot_1', sql_engine, logger)),
+                dcc.Graph(id='plot_1', figure=time_series_generator(start_date, end_date, 'plot_1', sql_engine)),
                 html.Br(),
                 html.H2('Borden CSAT Temperatures Display'),
-                dcc.Graph(id='plot_2', figure=time_series_generator(start_date, end_date, 'plot_2', sql_engine, logger)),
+                dcc.Graph(id='plot_2', figure=time_series_generator(start_date, end_date, 'plot_2', sql_engine)),
                 html.Br(),
                 html.H2('Borden Gases Display'),
-                dcc.Graph(id='plot_3', figure=time_series_generator(start_date, end_date, 'plot_3', sql_engine, logger)),
+                dcc.Graph(id='plot_3', figure=time_series_generator(start_date, end_date, 'plot_3', sql_engine)),
                 html.Br(),
                 html.H2('Borden Water Vapour Display'),
-                dcc.Graph(id='plot_4', figure=time_series_generator(start_date, end_date, 'plot_4', sql_engine, logger)),
+                dcc.Graph(id='plot_4', figure=time_series_generator(start_date, end_date, 'plot_4', sql_engine)),
                 html.Br(),
                 html.H2('Borden Tower Measurements'),
-                dcc.Graph(id='plot_5', figure=profile_generator('q_profile_last_available_cycle', sql_engine, logger))
+                dcc.Graph(id='plot_5', figure=profile_generator('q_profile_last_available_cycle', sql_engine))
             ]),
             width=10,
             style={'padding': '20px'}
@@ -144,10 +141,10 @@ def update_output(start_date,end_date):
         raise PreventUpdate
     else:
         logger.info('Updating plot')
-        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine,logger)
-        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine,logger)
-        plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine,logger)
-        plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine,logger)
+        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
+        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
+        plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
+        plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
