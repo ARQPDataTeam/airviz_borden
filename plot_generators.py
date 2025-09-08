@@ -140,9 +140,9 @@ def profile_generator(sql_query,sql_engine):
 
     # Separate species into primary and secondary
     o3_species = [ 'o3' ]
-    co2_species = ['lic_co2', 'lgr_co2', 'pic_co2']
-    ch4_species = ['pic_ch4', 'lgr_co']
-    h2o_species = ['lgr_h2o', 'lic_h2o', 'pic_h2o']
+    co2_species = ['lic_co2', 'lgr_co2']#, 'pic_co2']
+    ch4_species = ['lgr_co'] # 'pic_ch4', 
+    h2o_species = ['lgr_h2o', 'lic_h2o'] # , 'pic_h2o'
     ocs_species = ['lgr_ocs']
 
     # sub-select the dataframe into smaller sets organized by concentration scale
@@ -151,7 +151,7 @@ def profile_generator(sql_query,sql_engine):
     ch4_df=output_df[ch4_species]
     h2o_df=output_df[h2o_species]
     h2o_df = output_df[h2o_species].copy()
-    h2o_df['pic_h2o'] *= 10  # scale
+    # h2o_df['pic_h2o'] *= 10  # scale
     ocs_df = output_df[ocs_species]
 
     # set a colour list
