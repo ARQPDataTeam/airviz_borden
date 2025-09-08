@@ -12,7 +12,7 @@ import socket
 import logging
 import os
 import pandas as pd
-
+from dotenv import load_dotenv
 
 # local modules
 from plot_generators import time_series_generator
@@ -50,14 +50,24 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 # set up the sql connection string
-DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-DB_USER = os.getenv('DATAHUB_PSQL_USER')
-DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+if fsdh:
+    # Load OS environment variables
+    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+    DB_USER = os.getenv('DATAHUB_PSQL_USER')
+    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+
+else:
+    # Load variables from .env into environment
+    load_dotenv()
+    DB_HOST = os.getenv('QP_SERVER')
+    DB_USER = os.getenv('QP_VIEWER_USER')
+    DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
 
 # logger.info('Credentials loaded locally')
-logger.debug(f"{'DATAHUB_PSQL_SERVER'}: {DB_HOST}")
-logger.debug(f"{'DATAHUB_PSQL_USER'}: {DB_USER}")
+logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
+logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
