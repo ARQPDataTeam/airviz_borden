@@ -13,6 +13,7 @@ import logging
 import os
 import pandas as pd
 from dotenv import load_dotenv
+from packaging import version
 
 # local modules
 from plot_generators import time_series_generator
@@ -154,6 +155,9 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 
-if __name__ == "__main__":
-    app.run(port=8080, debug=True)
-    sql_engine.dispose()
+# set conditional test for Dash version to apply a Dash server or a unified Flask/Dash server
+if __name__ == '__main__':
+    if version.parse(dash.__version__) < version.parse("2.0.0"):
+        app.run_server(debug=False)
+    else:
+        app.run(port=8080, debug=False)
