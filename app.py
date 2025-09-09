@@ -30,7 +30,6 @@ url_prefix = "/app/AQPDBOR/"
 
 if fsdh:
     app = dash.Dash(__name__, 
-                    # url_base_pathname=url_prefix, 
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True,            
                     requests_pathname_prefix=url_prefix,
@@ -42,6 +41,9 @@ else:
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True
                     ) 
+
+# set up Dash server
+server = app.server
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -158,9 +160,6 @@ def update_output(start_date,end_date):
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
-
-
-server = app.server
 
 if __name__ == "__main__":
     app.run(port=8080)
