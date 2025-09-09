@@ -160,9 +160,8 @@ def update_output(start_date,end_date):
 
 
 
-if fsdh:
-    server = app.server
-else: 
-    if __name__ == "__main__":
-        app.run(port=8080)
-        sql_engine.dispose()
+server = app.server
+
+if __name__ == "__main__":
+    app.run(port=8080)
+    sql_engine.dispose()
