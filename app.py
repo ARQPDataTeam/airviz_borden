@@ -29,15 +29,21 @@ else:
 
 if local:     
     url_prefix = "/app/AQPDBOR/"
-
-else:
-    url_prefix = "/dash/"
-
-app = dash.Dash(__name__, 
-        requests_pathname_prefix=url_prefix,
+    app = dash.Dash(__name__, 
+        url_base_pathname=url_prefix,
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True
         ) 
+
+
+else:
+    url_prefix = "/dash/"
+    app = dash.Dash(__name__, 
+            requests_pathname_prefix=url_prefix,
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+            suppress_callback_exceptions=True
+            ) 
+    
 server = app.server
 
 logging.basicConfig(
