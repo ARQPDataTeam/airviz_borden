@@ -126,7 +126,7 @@ def profile_generator(sql_query,sql_engine):
     temp_cols = [col for col in output_df.columns if 'temp' in col]
     temp_df = output_df[temp_cols].mean(axis=0)
 
-    logger.debug(temp_df)
+    # logger.debug(temp_df)
 
     # Reindex with int depths
     temp_df.index = [int(re.search(r'(\d+)m', item).group(1)) for item in temp_df.index]
@@ -136,7 +136,7 @@ def profile_generator(sql_query,sql_engine):
 
     temp_df.reindex
 
-    logger.debug("\ntemp df:\n%s", temp_df)
+    # logger.debug("\ntemp df:\n%s", temp_df)
 
     # Separate species into primary and secondary
     o3_species = [ 'o3' ]

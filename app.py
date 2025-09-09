@@ -19,29 +19,26 @@ from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
 
-# set a local switch to speed the credentials try/except up
+
+# set a local switch to set dash server
 computer = socket.gethostname()
 if computer == 'WONTN74902':
-    fsdh = False
+    local = True
 else:
-    fsdh = True
+    local = False
 
-url_prefix = "/app/AQPDBOR/"
+if local:     
+    url_prefix = "/app/AQPDBOR/"
 
-if fsdh:
-    app = dash.Dash(__name__, 
-                    # url_base_pathname=url_prefix, 
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True,            
-                    requests_pathname_prefix=url_prefix,
-                    routes_pathname_prefix=url_prefix
-                    )
 else:
-    app = dash.Dash(__name__, 
-                    url_base_pathname=url_prefix,
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
-                    ) 
+    url_prefix = "/dash/"
+
+app = dash.Dash(__name__, 
+        requests_pathname_prefix=url_prefix,
+        external_stylesheets=[dbc.themes.BOOTSTRAP],
+        suppress_callback_exceptions=True
+        ) 
+server = app.server
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -51,19 +48,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# set up the sql connection string
-if fsdh:
-    # Load OS environment variables
-    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-    DB_USER = os.getenv('DATAHUB_PSQL_USER')
-    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
-
-else:
-    # Load variables from .env into environment
-    load_dotenv()
-    DB_HOST = os.getenv('QP_SERVER')
-    DB_USER = os.getenv('QP_VIEWER_USER')
-    DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
+# Load variables from .env into environment
+load_dotenv()
+DB_HOST = os.getenv('QP_SERVER')
+DB_USER = os.getenv('QP_VIEWER_USER')
+DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
 
 # logger.info('Credentials loaded locally')
 logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
@@ -159,10 +148,6 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 
-
-if fsdh:
-    server = app.server
-else: 
-    if __name__ == "__main__":
-        app.run(port=8080)
-        sql_engine.dispose()
+if __name__ == "__main__":
+    app.run(port=8080, debug=True)
+    sql_engine.dispose()
