@@ -36,7 +36,6 @@ if local:
         suppress_callback_exceptions=True
         ) 
 
-
 else:
     url_prefix = "/dash/"
     app = dash.Dash(__name__, 
@@ -53,7 +52,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
 
 # Load variables from .env into environment
 load_dotenv()
@@ -154,10 +152,12 @@ def update_output(start_date,end_date):
 
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
+if __name__ == '__main__':
+    app.run_server(debug=False)
 
 # set conditional test for Dash version to apply a Dash server or a unified Flask/Dash server
-if __name__ == '__main__':
-    if version.parse(dash.__version__) < version.parse("2.0.0"):
-        app.run_server(debug=False)
-    else:
-        app.run(port=8080, debug=False)
+# if __name__ == '__main__':
+#     if version.parse(dash.__version__) < version.parse("2.0.0"):
+#         app.run_server(debug=False)
+#     else:
+#         app.run(port=8080, debug=False)
