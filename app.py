@@ -8,28 +8,32 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from datetime import datetime as dt
 from datetime import timedelta as td
+from datetime import timezone as tz
 import socket
 import logging
 import os
 import pandas as pd
 from dotenv import load_dotenv
+from packaging import version
 
 # local modules
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
 
-# set a local switch to speed the credentials try/except up
+
+# set a local switch to set dash server
 computer = socket.gethostname()
 if computer == 'WONTN74902':
-    fsdh = False
+    local = True
 else:
-    fsdh = True
+    local = False
 
 url_prefix = "/app/AQPDBOR/"
 
 if fsdh:
     app = dash.Dash(__name__, 
+                    # url_base_pathname=url_prefix, 
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True,            
                     requests_pathname_prefix=url_prefix,
@@ -37,10 +41,12 @@ if fsdh:
                     )
 else:
     app = dash.Dash(__name__, 
-                    url_base_pathname=url_prefix,
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
-                    ) 
+            requests_pathname_prefix=url_prefix,
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+            suppress_callback_exceptions=True
+            ) 
+    
+server = app.server
 
 # set up Dash server
 server = app.server
@@ -52,20 +58,11 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-
-# set up the sql connection string
-if fsdh:
-    # Load OS environment variables
-    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-    DB_USER = os.getenv('DATAHUB_PSQL_USER')
-    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
-
-else:
-    # Load variables from .env into environment
-    load_dotenv()
-    DB_HOST = os.getenv('QP_SERVER')
-    DB_USER = os.getenv('QP_VIEWER_USER')
-    DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
+# Load variables from .env into environment
+load_dotenv()
+DB_HOST = os.getenv('QP_SERVER')
+DB_USER = os.getenv('QP_VIEWER_USER')
+DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
 
 # logger.info('Credentials loaded locally')
 logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
@@ -78,9 +75,9 @@ sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 # set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
-now=dt.today()
-start_date=(now-td(days=7)).strftime('%Y-%m-%d')
-end_date=now.strftime('%Y-%m-%d')
+now=dt.now(tz.utc)
+start_date=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
+end_date=now.strftime('%Y-%m-%d %H:%M')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 # set up the app layout
@@ -100,7 +97,7 @@ app.layout = dbc.Container([
         dbc.Col(  # RIGHT: Main Dashboard (10/12 width)
             html.Div([
                 html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                html.H3('Pick the desired date range. This will apply to all time plots on the page.'),
+                html.H3('Pick the desired date range (UTC). This will apply to all time plots on the page.'),
                 dcc.DatePickerRange(
                     id='date-picker',
                     min_date_allowed=first_date,
@@ -137,7 +134,13 @@ app.layout = dbc.Container([
             style={'padding': '20px'}
         )
     ])
+    dcc.Interval(
+    id="interval-component",
+    interval=60*1000,  # refresh every 60 seconds
+    n_intervals=0      # starts at 0
+    ),
 ], fluid=True)
+
 
 logger.info('plot generated')
 @app.callback(
