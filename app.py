@@ -133,7 +133,7 @@ app.layout = dbc.Container([
             width=10,
             style={'padding': '20px'}
         )
-    ])
+    ]),
     dcc.Interval(
     id="interval-component",
     interval=60*1000,  # refresh every 60 seconds
