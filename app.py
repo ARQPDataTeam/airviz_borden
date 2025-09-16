@@ -8,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from datetime import datetime as dt
 from datetime import timedelta as td
+from datetime import timezone as tz
 import socket
 import logging
 import os
@@ -70,9 +71,9 @@ sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 # set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
-now=dt.today()
-start_date=(now-td(days=7)).strftime('%Y-%m-%d')
-end_date=now.strftime('%Y-%m-%d')
+now=dt.now(tz.utc)
+start_date=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
+end_date=now.strftime('%Y-%m-%d %H:%M')
 start_time=(now-td(hours=1)).strftime('%h:%m')
 
 # set up the app layout
@@ -92,7 +93,7 @@ app.layout = dbc.Container([
         dbc.Col(  # RIGHT: Main Dashboard (10/12 width)
             html.Div([
                 html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                html.H3('Pick the desired date range. This will apply to all time plots on the page.'),
+                html.H3('Pick the desired date range (UTC). This will apply to all time plots on the page.'),
                 dcc.DatePickerRange(
                     id='date-picker',
                     min_date_allowed=first_date,
@@ -153,7 +154,7 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run(debug=False)
 
 # set conditional test for Dash version to apply a Dash server or a unified Flask/Dash server
 # if __name__ == '__main__':
