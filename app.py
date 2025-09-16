@@ -130,6 +130,11 @@ app.layout = dbc.Container([
             style={'padding': '20px'}
         )
     ])
+    dcc.Interval(
+    id="interval-component",
+    interval=60*1000,  # refresh every 60 seconds
+    n_intervals=0      # starts at 0
+    ),
 ], fluid=True)
 
 logger.info('plot generated')
@@ -154,7 +159,7 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run_server(debug=False)
 
 # set conditional test for Dash version to apply a Dash server or a unified Flask/Dash server
 # if __name__ == '__main__':
