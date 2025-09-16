@@ -71,16 +71,48 @@ logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
 sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 
-# set datetime parameters
-first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
 now=dt.now(tz.utc)
-start_date=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
-end_date=now.strftime('%Y-%m-%d %H:%M')
+start_dt=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
+end_dt=now.strftime('%Y-%m-%d %H:%M')
 start_time=(now-td(hours=1)).strftime('%h:%m')
+
+# set up a generic button style
+button_style = {
+    "backgroundColor": "#e0f0ff",
+    "borderRadius": "12px",
+    "padding": "10px 24px",
+    "border": "none",
+    "color": "#333",
+    "fontWeight": "bold",
+    "boxShadow": "0 2px 6px rgba(0,0,0,0.07)"
+}
 
 # set up the app layout
 app.layout = dbc.Container([
+        html.Div(
+        style={
+            "backgroundImage": f"url('{app.get_asset_url('skyline.jpg')}')",
+            "backgroundSize": "cover",
+            "backgroundPosition": "center",
+            "padding": "40px 0",
+            "borderRadius": "12px",
+            "marginBottom": "24px",
+            "boxShadow": "0 2px 8px rgba(0,0,0,0.15)",
+        },
+        children=[
+            html.H1(
+                "BORDEN DATA DASHBOARD",
+                style={
+                    "textAlign": "center",
+                    "color": "white",
+                    "textShadow": "2px 2px 8px #333",
+                    "margin": 0,
+                },
+            )
+        ],
+    ),
+
     dbc.Row([
         dbc.Col(  # LEFT: Status Indicator (2/12 width)
             status_indicator('status_indicator', sql_engine),  # your function
@@ -95,38 +127,117 @@ app.layout = dbc.Container([
         ),
         dbc.Col(  # RIGHT: Main Dashboard (10/12 width)
             html.Div([
-                html.H1('BORDEN DATA DASHBOARD', style={'textAlign': 'center'}),
-                html.H3('Pick the desired date range (UTC). This will apply to all time plots on the page.'),
-                dcc.DatePickerRange(
-                    id='date-picker',
-                    min_date_allowed=first_date,
-                    max_date_allowed=end_date,
-                    display_format='YYYY-MM-DD'
+                html.Div([
+                    html.H4('Pick the desired date range (UTC). This will apply to all time plots on the page.'),
+                    dbc.Container([
+                        dbc.Row([
+
+                            # Start datetime
+                            dbc.Col([
+                                html.Label("Start Date-time", style={"fontWeight": "bold"}),
+
+                                dbc.Row([
+                                    dbc.Col(
+                                        dcc.DatePickerSingle(
+                                            id="start-date",
+                                            display_format="YYYY-MM-DD",
+                                            placeholder="Select date",
+                                            style={"width": "100%"}
+                                        ), width=3
+                                    ),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            id="start-time",
+                                            type="time",
+                                            value="00:00",
+                                            style={"width": "140px"}
+                                        ), width=5
+                                    )
+                                ], className="g-2")  # spacing between date + time
+                            ], width=6),
+
+                            # End datetime
+                            dbc.Col([
+                                html.Label("End Date-time", style={"fontWeight": "bold"}),
+
+                                dbc.Row([
+                                    dbc.Col(
+                                        dcc.DatePickerSingle(
+                                            id="end-date",
+                                            display_format="YYYY-MM-DD",
+                                            placeholder="Select date",
+                                            style={"width": "100%"}
+                                        ), width=3
+                                    ),
+                                    dbc.Col(
+                                        dbc.Input(
+                                            id="end-time",
+                                            type="time",
+                                            value=dt.utcnow().strftime("%H:%M"),
+                                            style={"width": "140px"}
+                                        ), width=5
+                                    )
+                                ], className="g-2")
+                            ], width=6),
+
+                        ], justify="start", className="g-3")  # spacing between start/end blocks
+                    ], fluid=True),
+                    ],
+                    style={
+                        "border": "2px solid #b3d8ff",
+                        "borderRadius": "12px",
+                        "backgroundColor": "#f5fbff",
+                        "padding": "24px",
+                        "marginBottom": "24px",
+                        "boxShadow": "0 2px 8px rgba(0,0,0,0.06)"
+                    }
                 ),
                 html.Br(),
-                html.A(html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0), href='#plot_1'),
+                html.Div(
+                    html.A(
+                        html.Button('Borden CR3000 Temperatures Display', id='page1-btn', n_clicks=0, style=button_style), href='#plot_1'
+                    ),
+                    style={"marginBottom": "18px"}  # vertical space after this button
+                ),
+                
+                html.Div(
+                    html.A(
+                        html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0, style=button_style), href='#plot_2'
+                    ),
+                    style={"marginBottom": "18px"}  # vertical space after this button
+                ),
+                html.Div(
+                    html.A(
+                        html.Button('Borden Gases Display', id='page3-btn', n_clicks=0, style=button_style), href='#plot_3'
+                    ),
+                    style={"marginBottom": "18px"}  # vertical space after this button
+                ),
+                html.Div(
+                    html.A(
+                        html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0, style=button_style), href='#plot_4'
+                    ),
+                    style={"marginBottom": "18px"}  # vertical space after this button
+                ),
+                html.Div(
+                    html.A(
+                        html.Button('Borden Tower Profiles', id='page5-btn', n_clicks=0, style=button_style), href='#plot_5'
+                    ),
+                    style={"marginBottom": "18px"}  # vertical space after this button
+                ),
                 html.Br(),
-                html.A(html.Button('Borden CSAT Temperatures Display', id='page2-btn', n_clicks=0), href='#plot_2'),
+                html.H3('Borden Time Series Plots', style={"textAlign": "center"}),
+                dcc.Graph(id='plot_1', figure=time_series_generator(start_dt, end_dt, 'plot_1', sql_engine)),
                 html.Br(),
-                html.A(html.Button('Borden Gases Display', id='page3-btn', n_clicks=0), href='#plot_3'),
+                # html.H2('Borden CSAT Temperatures Display'),
+                dcc.Graph(id='plot_2', figure=time_series_generator(start_dt, end_dt, 'plot_2', sql_engine)),
                 html.Br(),
-                html.A(html.Button('Borden Water Vapour Display', id='page4-btn', n_clicks=0), href='#plot_4'),
+                # html.H2('Borden Gases Display'),
+                dcc.Graph(id='plot_3', figure=time_series_generator(start_dt, end_dt, 'plot_3', sql_engine)),
                 html.Br(),
-                html.A(html.Button('Borden Profile', id='page5-btn', n_clicks=0), href='#plot_5'),
+                # html.H2('Borden Water Vapour Display'),
+                dcc.Graph(id='plot_4', figure=time_series_generator(start_dt, end_dt, 'plot_4', sql_engine)),
                 html.Br(),
-                html.H2('Borden CR3000 Temperatures Display'),
-                dcc.Graph(id='plot_1', figure=time_series_generator(start_date, end_date, 'plot_1', sql_engine)),
-                html.Br(),
-                html.H2('Borden CSAT Temperatures Display'),
-                dcc.Graph(id='plot_2', figure=time_series_generator(start_date, end_date, 'plot_2', sql_engine)),
-                html.Br(),
-                html.H2('Borden Gases Display'),
-                dcc.Graph(id='plot_3', figure=time_series_generator(start_date, end_date, 'plot_3', sql_engine)),
-                html.Br(),
-                html.H2('Borden Water Vapour Display'),
-                dcc.Graph(id='plot_4', figure=time_series_generator(start_date, end_date, 'plot_4', sql_engine)),
-                html.Br(),
-                html.H2('Borden Tower Measurements'),
+                html.H3('Borden Tower Measurements', style={"textAlign": "center"}),
                 dcc.Graph(id='plot_5', figure=profile_generator('q_profile_last_available_cycle', sql_engine))
             ]),
             width=10,
@@ -147,22 +258,32 @@ logger.info('plot generated')
     Output('plot_2', 'figure'),
     Output('plot_3', 'figure'),
     Output('plot_4', 'figure'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'))
+    Input("start-date", "date"),
+    Input("start-time", "value"),
+    Input("end-date", "date"),
+    Input("end-time", "value")
+)
 
-def update_output(start_date,end_date):
-    if not start_date or not end_date:
+def update_output(start_date, start_time, end_date, end_time):
+    if not start_date or not start_time or not end_date or not end_time:
         raise PreventUpdate
-    else:
-        logger.info('Updating plot')
-        plot_1_fig=time_series_generator(start_date,end_date,'plot_1',sql_engine)
-        plot_2_fig=time_series_generator(start_date,end_date,'plot_2',sql_engine)
-        plot_3_fig=time_series_generator(start_date,end_date,'plot_3',sql_engine)
-        plot_4_fig=time_series_generator(start_date,end_date,'plot_4',sql_engine)
 
-    return plot_1_fig,plot_2_fig,plot_3_fig,plot_4_fig
+    # Combine into UTC datetime objects
+    start_dt = dt.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M").replace(tzinfo=tz.utc)
+    end_dt   = dt.strptime(f"{end_date} {end_time}", "%Y-%m-%d %H:%M").replace(tzinfo=tz.utc)
+
+    # Call your plot generator functions with UTC datetimes
+    plot_1_fig = time_series_generator(start_dt, end_dt, "plot_1", sql_engine)
+    plot_2_fig = time_series_generator(start_dt, end_dt, "plot_2", sql_engine)
+    plot_3_fig = time_series_generator(start_dt, end_dt, "plot_3", sql_engine)
+    plot_4_fig = time_series_generator(start_dt, end_dt, "plot_4", sql_engine)
+
+    return plot_1_fig, plot_2_fig, plot_3_fig, plot_4_fig
 
 
 if __name__ == "__main__":
-    app.run(port=8080)
+    if local:
+        app.run(debug=False, port=8080)
+    else:
+        app.run_server(debug=False)
     sql_engine.dispose()
