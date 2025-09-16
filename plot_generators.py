@@ -119,7 +119,7 @@ def profile_generator(sql_query,sql_engine):
     profile_time=output_df['hour'].iloc[0]
     profile_title = f"Average Borden Tower Concentration Profiles For {profile_time}"
     
-    # logger.debug("\noutput:\n%s", output_df)
+    logger.debug("\noutput:\n%s", output_df)
 
     output_df.index = [1,5,16,26,33,42]
     output_df.index = output_df.index.astype(float)  # height as float

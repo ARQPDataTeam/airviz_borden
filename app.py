@@ -29,24 +29,23 @@ if computer == 'WONTN74902':
 else:
     local = False
 
-url_prefix = "/app/AQPDBOR/"
 
-if fsdh:
+
+if local:     
+    url_prefix = "/app/AQPDBOR/"
     app = dash.Dash(__name__, 
-                    # url_base_pathname=url_prefix, 
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True,            
-                    requests_pathname_prefix=url_prefix,
-                    routes_pathname_prefix=url_prefix
-                    )
+        url_base_pathname=url_prefix,
+        external_stylesheets=[dbc.themes.BOOTSTRAP],
+        suppress_callback_exceptions=True
+        ) 
+
 else:
+    url_prefix = "/dash/"
     app = dash.Dash(__name__, 
             requests_pathname_prefix=url_prefix,
             external_stylesheets=[dbc.themes.BOOTSTRAP],
             suppress_callback_exceptions=True
             ) 
-    
-server = app.server
 
 # set up Dash server
 server = app.server
