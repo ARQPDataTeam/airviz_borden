@@ -14,13 +14,17 @@ import logging
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from packaging import version
+# from packaging import version
+import base64
+from flask import Flask
 
 # local modules
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
 
+# Create the underlying Flask app
+server = Flask(__name__)
 
 # set a local switch to set dash server
 computer = socket.gethostname()
@@ -28,8 +32,6 @@ if computer == 'WONTN74902':
     local = True
 else:
     local = False
-
-
 
 if local:     
     url_prefix = "/app/AQPDBOR/"
@@ -41,14 +43,15 @@ if local:
 
 else:
     url_prefix = "/dash/"
-    app = dash.Dash(__name__, 
+    app = dash.Dash(__name__,
+            server=server,  
             requests_pathname_prefix=url_prefix,
             external_stylesheets=[dbc.themes.BOOTSTRAP],
             suppress_callback_exceptions=True
             ) 
 
-# set up Dash server
-server = app.server
+# # set up Dash server
+# server = app.server
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -57,6 +60,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+logger.debug('app.y START')
+
 # Load variables from .env into environment
 load_dotenv()
 DB_HOST = os.getenv('QP_SERVER')
@@ -64,18 +69,20 @@ DB_USER = os.getenv('QP_VIEWER_USER')
 DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
 
 # logger.info('Credentials loaded locally')
-logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
-logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
+# logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
+# logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
 sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 
-
 now=dt.now(tz.utc)
 start_dt=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
 end_dt=now.strftime('%Y-%m-%d %H:%M')
 start_time=(now-td(hours=1)).strftime('%h:%m')
+
+# sound_filename =  'assets/loop.mp3'
+# encoded_sound = base64.b64encode(open(sound_filename, 'rb').read())
 
 # set up a generic button style
 button_style = {
@@ -249,8 +256,8 @@ app.layout = dbc.Container([
     interval=60*1000,  # refresh every 60 seconds
     n_intervals=0      # starts at 0
     ),
-], fluid=True)
 
+], fluid=True)
 
 logger.info('plot generated')
 @app.callback(
@@ -264,9 +271,26 @@ logger.info('plot generated')
     Input("end-time", "value")
 )
 
+    # html.Audio(id='audio-player', src='data:audio/mpeg;base64,{}'.format(encoded_sound.decode()),
+    #                       controls=True,
+    #                       autoPlay=False,
+    #                       hidden=True
+    #                       ),    
+
+# def play( end_date ):
+#     if end_date:
+#         return html.Audio(src='data:audio/mpeg;base64,{}'.format(encoded_sound.decode()),
+#                           controls=False,
+#                           autoPlay=True,
+#                           )
+
 def update_output(start_date, start_time, end_date, end_time):
+
     if not start_date or not start_time or not end_date or not end_time:
+        logger.info('update_output : PreventUpdate')
         raise PreventUpdate
+
+    logger.info('update_output')
 
     # Combine into UTC datetime objects
     start_dt = dt.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M").replace(tzinfo=tz.utc)
@@ -280,10 +304,16 @@ def update_output(start_date, start_time, end_date, end_time):
 
     return plot_1_fig, plot_2_fig, plot_3_fig, plot_4_fig
 
-
 if __name__ == "__main__":
+    
     if local:
         app.run(debug=False, port=8080)
-    else:
-        app.run_server(debug=False)
+    # else:
+    #     app.run_server(debug=False)
     sql_engine.dispose()
+
+
+# Expose the Flask server for mod_wsgi
+application = app.server
+
+logger.debug('app.y END')

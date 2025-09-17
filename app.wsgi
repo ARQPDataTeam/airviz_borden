@@ -4,7 +4,7 @@ import sys, os
 
 os.chdir('/var/www/html/dash')
 
-print("wsgi: Current Working Directory:",os.getcwd())
+#print("wsgi: Current Working Directory:",os.getcwd())
 
 from app import server as application
 
