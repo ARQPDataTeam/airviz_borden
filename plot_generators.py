@@ -171,7 +171,7 @@ def profile_generator(sql_query,sql_engine):
         mode='lines+markers',
         line=dict(color='magenta'),
         marker=dict(symbol='square', size=8),
-        name='O3 (ppbv)',
+        name='o3',
         legendgroup='panel1',
         showlegend=True
     ), row=1, col=1)
@@ -226,7 +226,7 @@ def profile_generator(sql_query,sql_engine):
         y=ocs_df.index,
         mode='lines+markers',
         line=dict(color='green'),
-        name='OCS_LGR (pptv)',
+        name='lgr_ocs',
         # xaxis='x4',
         legendgroup='panel5',
         showlegend=True
@@ -238,7 +238,7 @@ def profile_generator(sql_query,sql_engine):
         y=temp_df.index,
         mode='lines+markers',
         line=dict(color='black'),
-        name='Temperature (C)',
+        name='temp',
         # xaxis='x4',
         legendgroup='panel6',
         showlegend=True
