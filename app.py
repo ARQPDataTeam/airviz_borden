@@ -238,7 +238,7 @@ app.layout = dbc.Container([
                 dcc.Graph(id='plot_4', figure=time_series_generator(start_dt, end_dt, 'plot_4', sql_engine)),
                 html.Br(),
                 html.H3('Borden Tower Measurements', style={"textAlign": "center"}),
-                dcc.Graph(id='plot_5', figure=profile_generator('q_profile_last_available_cycle', sql_engine))
+                dcc.Graph(id='plot_5')
             ]),
             width=10,
             style={'padding': '20px'}
@@ -280,6 +280,15 @@ def update_output(start_date, start_time, end_date, end_time):
 
     return plot_1_fig, plot_2_fig, plot_3_fig, plot_4_fig
 
+@app.callback(
+    Output('plot_5', 'figure'),
+    Input('interval-component', 'n_intervals')
+)
+def update_plot_5(n_intervals):
+    # You could add more live controls/inputs if you wish here
+    # Re-generate plot_5 using latest data from SQL
+    fig = profile_generator('q_profile_last_available_cycle', sql_engine)
+    return fig
 
 if __name__ == "__main__":
     if local:
