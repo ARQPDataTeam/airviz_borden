@@ -95,28 +95,29 @@ def profile_generator(sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
-    sql_time_query = """
-    WITH time_bounds AS (
-        SELECT 
-            to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
-            to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
-        FROM bor__profile_v0
-    )
-    SELECT * FROM time_bounds;
-    """
+    # sql_time_query = """
+    # WITH time_bounds AS (
+    #     SELECT 
+    #         to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
+    #         to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
+    #     FROM bor__profile_v0
+    # )
+    # SELECT * FROM time_bounds;
+    # """
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
         output_df=pd.read_sql_query(sql_query, conn)
-        result = conn.execute(text(sql_time_query)).fetchone()
+        # result = conn.execute(text(sql_time_query)).fetchone()
 
     # Access as tuple or named columns
-    start_time, end_time = result[0], result[1]
+    # start_time, end_time = result[0], result[1]
 
-    if start_time is None or end_time is None:
-        profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
-    else:
-        profile_title = f"Average Borden Tower Concentration Profiles From {start_time} to {end_time}"
+    # if start_time is None or end_time is None:
+    #     profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
+    # else:
+    profile_time=output_df['hour'].iloc[0]
+    profile_title = f"Average Borden Tower Concentration Profiles For {profile_time}"
     
     # logger.debug("\noutput:\n%s", output_df)
 
@@ -141,32 +142,36 @@ def profile_generator(sql_query,sql_engine):
     # Separate species into primary and secondary
     o3_species = [ 'o3' ]
     co2_species = ['lic_co2', 'lgr_co2']#, 'pic_co2']
-    ch4_species = ['lgr_co'] # 'pic_ch4', 
+    co_species = ['lgr_co'] # 'pic_ch4', 
     h2o_species = ['lgr_h2o', 'lic_h2o'] # , 'pic_h2o'
     ocs_species = ['lgr_ocs']
 
     # sub-select the dataframe into smaller sets organized by concentration scale
     o3_df=output_df[o3_species]
     co2_df=output_df[co2_species]
-    ch4_df=output_df[ch4_species]
+    ch4_df=output_df[co_species]
     h2o_df=output_df[h2o_species]
     h2o_df = output_df[h2o_species].copy()
     # h2o_df['pic_h2o'] *= 10  # scale
     ocs_df = output_df[ocs_species]
 
     # set a colour list
-    plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
+    plot_color_list = ['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
+
+    # set a marker list
+    marker_list = ['triangle-up', 'square']
 
     # create the fig properties
     fig = make_subplots(rows=1, cols=6, column_widths=6*[0.16], shared_yaxes=False)
 
-    # === PANEL 1 CH4 and CO ===
+    # === PANEL 1 O3 and NOx (future) ===
     fig.add_trace(go.Scatter(
         x=o3_df['o3'],
         y=o3_df.index,
         mode='lines+markers',
-        line=dict(color=plot_color_list[0]),
-        name='O3 (ppbv)',
+        line=dict(color='magenta'),
+        marker=dict(symbol='square', size=8),
+        name='o3',
         legendgroup='panel1',
         showlegend=True
     ), row=1, col=1)
@@ -178,7 +183,8 @@ def profile_generator(sql_query,sql_engine):
             x=co2_df[species],
             y=co2_df.index,
             mode='lines+markers',
-            line=dict(color=plot_color_list[i+1]),
+            line=dict(color='red'),
+            marker=dict(symbol=marker_list[i], size=8),
             name=species,
             # xaxis='x',
             legendgroup='panel2',
@@ -186,7 +192,7 @@ def profile_generator(sql_query,sql_engine):
         ), row=1, col=2)
 
     # === PANEL 3 CH4 group ===
-    for i, species in enumerate(ch4_species):
+    for i, species in enumerate(co_species):
         # print (ch4_df[species])
         fig.add_trace(go.Scatter(
             x=ch4_df[species],
@@ -206,7 +212,8 @@ def profile_generator(sql_query,sql_engine):
             x=h2o_df[species],
             y=h2o_df.index,
             mode='lines+markers',
-            line=dict(color=plot_color_list[i]),
+            line=dict(color='blue'),
+            marker=dict(symbol=marker_list[i], size=8),
             name=species,
             # xaxis='x3',
             legendgroup='panel4',
@@ -218,8 +225,8 @@ def profile_generator(sql_query,sql_engine):
         x=ocs_df['lgr_ocs'],
         y=ocs_df.index,
         mode='lines+markers',
-        line=dict(color=plot_color_list[3]),
-        name='OCS_LGR (pptv)',
+        line=dict(color='green'),
+        name='lgr_ocs',
         # xaxis='x4',
         legendgroup='panel5',
         showlegend=True
@@ -230,8 +237,8 @@ def profile_generator(sql_query,sql_engine):
         x=temp_df,
         y=temp_df.index,
         mode='lines+markers',
-        line=dict(color=plot_color_list[0]),
-        name='Temperature (C)',
+        line=dict(color='black'),
+        name='temp',
         # xaxis='x4',
         legendgroup='panel6',
         showlegend=True
@@ -247,7 +254,7 @@ def profile_generator(sql_query,sql_engine):
     # X-Axes
         xaxis=dict(title='O3 (ppbv)', side='bottom'),  # col=1
         xaxis2=dict(title='CO2 (ppmv)', side='bottom'),  # col=2
-        xaxis3=dict(title='CH4 / CO (ppmv)', side='bottom'),  # col=3
+        xaxis3=dict(title='CO (ppbv)', side='bottom'),  # col=3
         xaxis4=dict(title='H2O (ppthv)', side='bottom'),  # col=4
         xaxis5=dict(title='OCS (ppthv)', side='bottom'),  # col=5
         xaxis6=dict(title='Temperature (C)', side='bottom'),  # col=6
