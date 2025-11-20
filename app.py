@@ -21,7 +21,7 @@ from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
 
-# set a local switch to speed the credentials try/except up
+# set a local switch to select host environment
 computer = socket.gethostname().lower()
 if computer == 'wontn74902':
     host = 'local'
@@ -30,8 +30,7 @@ elif 'qpdata' in computer:
 else:
     host = 'fsdh'
 
-
-
+# initialize the app based on host
 if host == 'fsdh':
     url_prefix = "/app/AQPDBOR/"
     app = dash.Dash(__name__,  
@@ -56,6 +55,7 @@ else:
                     suppress_callback_exceptions=True
                     ) 
 
+# set up logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(message)s"
@@ -89,6 +89,7 @@ sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 # set datetime parameters
 first_date=dt.strftime(dt(dt.today().year, 1, 1),'%Y-%m-%d')
 
+# establish default date range: last 7 days
 now=dt.now(tz.utc)
 start_dt=(now-td(days=7)).strftime('%Y-%m-%d %H:%M')
 end_dt=now.strftime('%Y-%m-%d %H:%M')
@@ -268,7 +269,7 @@ app.layout = dbc.Container([
     ),
 ], fluid=True)
 
-
+# Callbacks for interactivity
 logger.info('plot generated')
 @app.callback(
     Output('plot_1', 'figure'),
@@ -281,6 +282,7 @@ logger.info('plot generated')
     Input("end-time", "value")
 )
 
+# update time series plots based on date range inputs
 def update_output(start_date, start_time, end_date, end_time):
     if not start_date or not start_time or not end_date or not end_time:
         raise PreventUpdate
@@ -297,20 +299,19 @@ def update_output(start_date, start_time, end_date, end_time):
 
     return plot_1_fig, plot_2_fig, plot_3_fig, plot_4_fig
 
+# Callback to update plot_5 every minute
 @app.callback(
     Output('plot_5', 'figure'),
     Input('interval-component', 'n_intervals')
 )
+# update plot_5 periodically
 def update_plot_5(n_intervals):
     # You could add more live controls/inputs if you wish here
     # Re-generate plot_5 using latest data from SQL
     fig = profile_generator('q_profile_last_available_cycle', sql_engine)
     return fig
 
-
-
-
-
+# Run the app
 if __name__ == "__main__":
     if host == 'qpdata':
         app.run_server(debug=False)
