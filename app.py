@@ -41,7 +41,7 @@ else:
 
 # display host info
 logging.basicConfig(level=logging.INFO)
-logger.info(f"Host environment detected: {host}")
+logger.info(f"Host environment detected: {computer}")
 
 # initialize the app based on host
 if host == 'fsdh':
