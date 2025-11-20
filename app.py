@@ -59,6 +59,7 @@ elif host == 'qpdata':
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True
                     )
+    server = app.server
     
 else:
     url_prefix = "/app/AQPDBOR/"
