@@ -1,21 +1,14 @@
 set time zone 'GMT';
-with latest_hour as (
-    select *
-    from bor__profile_avg
-    where datetime > (
-        (select max(datetime) from bor__profile_avg) - interval '1 hour'
-    )
-)
 select 
     gas_level,
-    date_trunc('hour', datetime) as hour,
-    avg(lgr_co) as lgr_co,
-    avg(lgr_co2) as lgr_co2,
-    avg(lgr_ocs) as lgr_ocs,
-    avg(lgr_h2o) as lgr_h2o,
-    avg(lic_co2) as lic_co2,
-    avg(lic_h2o) as lic_h2o,
-    avg(o3) as o3,
+--    date_trunc('hour', datetime  ) as hour,
+    round( avg(lgr_co), 2) as lgr_co,
+    round( avg(lgr_co2), 2) as lgr_co2,
+    round( avg(lgr_ocs), 2) as lgr_ocs,
+    round( avg(lgr_h2o), 2) as lgr_h2o,
+    round( avg(lic_co2), 2) as lic_co2,
+    round( avg(lic_h2o), 2) as lic_h2o,
+    round( avg(o3), 2) as o3,
 --    avg(pic_ch4) as pic_ch4,
 --    avg(pic_co2) as pic_co2,
 --    avg(pic_h2o) as pic_h2o,
@@ -31,6 +24,10 @@ select
     (array_agg(temp29m_avg order by datetime desc))[1] as temp29m_avg,
     (array_agg(temp33m_avg order by datetime desc))[1] as temp33m_avg,
     (array_agg(temp42m_avg order by datetime desc))[1] as temp42m_avg
-from latest_hour
-group by gas_level, date_trunc('hour', datetime)
+from (     
+	select *
+	    from bor__profile_avg
+	    where datetime > ( ( select max(datetime) from bor__profile_avg ) - interval '1 hour' )
+    ) AS subq
+group by gas_level
 order by gas_level;

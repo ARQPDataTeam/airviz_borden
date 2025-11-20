@@ -41,11 +41,16 @@ if host == 'fsdh':
                     )
 elif host == 'qpdata':
     url_prefix = "/dash/"
+    # app = dash.Dash(__name__, 
+    #                 requests_pathname_prefix=url_prefix,
+    #                 external_stylesheets=[dbc.themes.BOOTSTRAP],
+    #                 suppress_callback_exceptions=True
+    #                 )
     app = dash.Dash(__name__, 
-                    requests_pathname_prefix=url_prefix,
+                    requests_pathname_prefix='/dash/', eager_loading=True,
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
                     )
+    server = app.server
     
 else:
     url_prefix = "/app/AQPDBOR/"
@@ -73,7 +78,7 @@ if host == 'fsdh':
 
 else:
     # Load variables from .env into environment
-    load_dotenv()
+    load_dotenv('/var/www/html/dash/.env', override=True)
     DB_HOST = os.getenv('QP_SERVER')
     DB_USER = os.getenv('QP_VIEWER_USER')
     DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
