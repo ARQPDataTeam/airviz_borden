@@ -1,40 +1,36 @@
-SET TIME ZONE 'GMT';
-
-WITH complete_hours AS (
-    SELECT date_trunc('hour', datetime) AS hour
-    FROM bor__profile_avg
-    GROUP BY date_trunc('hour', datetime)
-    HAVING COUNT(DISTINCT gas_level) = 6
-    ORDER BY hour DESC
-    LIMIT 1
-),
-latest_complete AS (
-    SELECT *
-    FROM bor__profile_avg
-    WHERE date_trunc('hour', datetime) = (SELECT hour FROM complete_hours)
+set time zone 'GMT';
+with latest_hour as (
+    select *
+    from bor__profile_avg
+    where datetime > (
+        (select max(datetime) from bor__profile_avg) - interval '1 hour'
+    )
 )
-SELECT 
+select 
     gas_level,
-    date_trunc('hour', datetime) AS hour,
-    avg(lgr_co)   AS lgr_co,
-    avg(lgr_co2)  AS lgr_co2,
-    avg(lgr_ocs)  AS lgr_ocs,
-    avg(lgr_h2o)  AS lgr_h2o,
-    avg(lic_co2)  AS lic_co2,
-    avg(lic_h2o)  AS lic_h2o,
-    avg(o3)       AS o3,
-    (array_agg(temp1m_avg  ORDER BY datetime DESC))[1] AS temp1m_avg,
-    (array_agg(temp3m_avg  ORDER BY datetime DESC))[1] AS temp3m_avg,
-    (array_agg(temp6m_avg  ORDER BY datetime DESC))[1] AS temp6m_avg,
-    (array_agg(temp10m_avg ORDER BY datetime DESC))[1] AS temp10m_avg,
-    (array_agg(temp13m_avg ORDER BY datetime DESC))[1] AS temp13m_avg,
-    (array_agg(temp16m_avg ORDER BY datetime DESC))[1] AS temp16m_avg,
-    (array_agg(temp19m_avg ORDER BY datetime DESC))[1] AS temp19m_avg,
-    (array_agg(temp22m_avg ORDER BY datetime DESC))[1] AS temp22m_avg,
-    (array_agg(temp25m_avg ORDER BY datetime DESC))[1] AS temp25m_avg,
-    (array_agg(temp29m_avg ORDER BY datetime DESC))[1] AS temp29m_avg,
-    (array_agg(temp33m_avg ORDER BY datetime DESC))[1] AS temp33m_avg,
-    (array_agg(temp42m_avg ORDER BY datetime DESC))[1] AS temp42m_avg
-FROM latest_complete
-GROUP BY gas_level, date_trunc('hour', datetime)
-ORDER BY gas_level;
+    date_trunc('hour', datetime) as hour,
+    avg(lgr_co) as lgr_co,
+    avg(lgr_co2) as lgr_co2,
+    avg(lgr_ocs) as lgr_ocs,
+    avg(lgr_h2o) as lgr_h2o,
+    avg(lic_co2) as lic_co2,
+    avg(lic_h2o) as lic_h2o,
+    avg(o3) as o3,
+--    avg(pic_ch4) as pic_ch4,
+--    avg(pic_co2) as pic_co2,
+--    avg(pic_h2o) as pic_h2o,
+    (array_agg(temp1m_avg order by datetime desc))[1] as temp1m_avg,
+    (array_agg(temp3m_avg order by datetime desc))[1] as temp3m_avg,
+    (array_agg(temp6m_avg order by datetime desc))[1] as temp6m_avg,
+    (array_agg(temp10m_avg order by datetime desc))[1] as temp10m_avg,
+    (array_agg(temp13m_avg order by datetime desc))[1] as temp13m_avg,
+    (array_agg(temp16m_avg order by datetime desc))[1] as temp16m_avg,
+    (array_agg(temp19m_avg order by datetime desc))[1] as temp19m_avg,
+    (array_agg(temp22m_avg order by datetime desc))[1] as temp22m_avg,
+    (array_agg(temp25m_avg order by datetime desc))[1] as temp25m_avg,
+    (array_agg(temp29m_avg order by datetime desc))[1] as temp29m_avg,
+    (array_agg(temp33m_avg order by datetime desc))[1] as temp33m_avg,
+    (array_agg(temp42m_avg order by datetime desc))[1] as temp42m_avg
+from latest_hour
+group by gas_level, date_trunc('hour', datetime)
+order by gas_level;
