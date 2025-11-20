@@ -21,6 +21,15 @@ from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
 
+# set up logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+
 # set a local switch to select host environment
 computer = socket.gethostname().lower()
 if computer == 'wontn74902':
@@ -29,6 +38,10 @@ elif 'qpdata' in computer:
     host = 'qpdata'
 else:
     host = 'fsdh'
+
+# display host info
+logging.basicConfig(level=logging.INFO)
+logger.info(f"Host environment detected: {computer}")
 
 # initialize the app based on host
 if host == 'fsdh':
@@ -46,6 +59,7 @@ elif host == 'qpdata':
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True
                     )
+    server = app.server
     
 else:
     url_prefix = "/app/AQPDBOR/"
@@ -54,15 +68,6 @@ else:
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True
                     ) 
-
-# set up logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(message)s"
-)
-
-logger = logging.getLogger(__name__)
-
 
 # set up the sql connection string
 if host == 'fsdh':
