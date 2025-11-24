@@ -52,6 +52,7 @@ if host == 'fsdh':
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True            
                     )
+    server = app.server
 elif host == 'qpdata':
     url_prefix = "/dash/"
     app = dash.Dash(__name__, 
