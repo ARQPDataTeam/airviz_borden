@@ -41,7 +41,7 @@ else:
 
 # display host info
 logging.basicConfig(level=logging.INFO)
-logger.info(f"Host environment detected: {host}")
+logger.info(f"Host environment detected: {computer}")
 
 # initialize the app based on host
 if host == 'fsdh':
@@ -52,13 +52,16 @@ if host == 'fsdh':
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
                     suppress_callback_exceptions=True            
                     )
+    server = app.server
 elif host == 'qpdata':
     url_prefix = "/dash/"
     app = dash.Dash(__name__, 
                     requests_pathname_prefix=url_prefix,
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
+                    suppress_callback_exceptions=True,
+                    eager_loading=True
                     )
+    server = app.server
     
 else:
     url_prefix = "/app/AQPDBOR/"
