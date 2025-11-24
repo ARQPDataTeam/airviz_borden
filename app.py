@@ -58,7 +58,8 @@ elif host == 'qpdata':
     app = dash.Dash(__name__, 
                     requests_pathname_prefix=url_prefix,
                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
+                    suppress_callback_exceptions=True,
+                    eager_loading=True
                     )
     server = app.server
     
