@@ -1,3 +1,4 @@
+
 SET TIME ZONE 'GMT';
 
 WITH latest_hour AS (
@@ -13,13 +14,13 @@ latest_datetime AS (
 )
 SELECT 
     gas_level,
-    avg(lgr_co)  AS lgr_co,
-    avg(lgr_co2) AS lgr_co2,
-    avg(lgr_ocs) AS lgr_ocs,
-    avg(lgr_h2o) AS lgr_h2o,
-    avg(lic_co2) AS lic_co2,
-    avg(lic_h2o) AS lic_h2o,
-    avg(o3)      AS o3,
+    round( avg(lgr_co), 2) as lgr_co,
+    round( avg(lgr_co2), 2) as lgr_co2,
+    round( avg(lgr_ocs), 2) as lgr_ocs,
+    round( avg(lgr_h2o), 2) as lgr_h2o,
+    round( avg(lic_co2), 2) as lic_co2,
+    round( avg(lic_h2o), 2) as lic_h2o,
+    round( avg(o3), 2) as o3,
 
     -- most recent value for each temperature height
     (array_agg(temp1m_avg  ORDER BY datetime DESC))[1]  AS temp1m_avg,

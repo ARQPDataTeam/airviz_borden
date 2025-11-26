@@ -95,6 +95,12 @@ def profile_generator(sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
+    sql_time_query = """
+            SELECT 
+                to_char(date_trunc('minute', max(datetime)) - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
+                to_char(date_trunc('minute', max(datetime)), 'YYYY-MM-DD HH24:MI') AS end_time
+            FROM bor__profile_avg;    
+            """
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
@@ -104,22 +110,13 @@ def profile_generator(sql_query,sql_engine):
     # Access as tuple or named columns
     start_time, end_time = result[0], result[1]
 
-    # if start_time is None or end_time is None:
-    #     profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
-    # else:
-    #profile_time=output_df['hour'].iloc[0]
-    #profile_title = f"Average Borden Tower Concentration Profiles For {profile_time}"
     
     if start_time is None or end_time is None:
         profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
     else:
         profile_title = f"Average Borden Tower Concentration Profiles From {start_time} to {end_time}"
 
-    print (profile_title)
-
-
-    # logger.debug("\noutput:\n%s", output_df)
-
+    # set the index to the heights
     output_df.index = [1,5,16,26,33,42]
     output_df.index = output_df.index.astype(float)  # height as float
 
