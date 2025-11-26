@@ -95,15 +95,6 @@ def profile_generator(sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
-    # sql_time_query = """
-    # WITH time_bounds AS (
-    #     SELECT 
-    #         to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
-    #         to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
-    #     FROM bor__profile_v0
-    # )
-    # SELECT * FROM time_bounds;
-    # """
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
