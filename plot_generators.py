@@ -95,30 +95,32 @@ def profile_generator(sql_query,sql_engine):
     with open(filepath,'r') as f:
         sql_query=f.read()
 
-    # sql_time_query = """
-    # WITH time_bounds AS (
-    #     SELECT 
-    #         to_char(max(datetime)::timestamp - INTERVAL '1 hour', 'YYYY-MM-DD HH24:MI') AS start_time,
-    #         to_char(max(datetime)::timestamp, 'YYYY-MM-DD HH24:MI') AS end_time
-    #     FROM bor__profile_v0
-    # )
-    # SELECT * FROM time_bounds;
-    # """
+    sql_time_query = """
+    SELECT date_trunc('minute',max(datetime)) - INTERVAL '1 hour' AS start_time, date_trunc('minute',max(datetime)) AS end_time FROM bor__profile_avg;
+    """
 
     with sql_engine.connect() as conn:
     # create the dataframes from the sql query
         output_df=pd.read_sql_query(sql_query, conn)
-        # result = conn.execute(text(sql_time_query)).fetchone()
+        result = conn.execute(text(sql_time_query)).fetchone()
 
     # Access as tuple or named columns
-    # start_time, end_time = result[0], result[1]
+    start_time, end_time = result[0], result[1]
 
     # if start_time is None or end_time is None:
     #     profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
     # else:
-    profile_time=output_df['hour'].iloc[0]
-    profile_title = f"Average Borden Tower Concentration Profiles For {profile_time}"
+    #profile_time=output_df['hour'].iloc[0]
+    #profile_title = f"Average Borden Tower Concentration Profiles For {profile_time}"
     
+    if start_time is None or end_time is None:
+        profile_title = "Average Borden Tower Concentration Profiles (time range unavailable)"
+    else:
+        profile_title = f"Average Borden Tower Concentration Profiles From {start_time} to {end_time}"
+
+    print (profile_title)
+
+
     # logger.debug("\noutput:\n%s", output_df)
 
     output_df.index = [1,5,16,26,33,42]
