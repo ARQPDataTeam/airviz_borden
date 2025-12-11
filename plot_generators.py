@@ -248,11 +248,11 @@ def profile_generator(sql_query,sql_engine):
         title_x=0.5,  # Center the title horizontally
 
     # X-Axes
-        xaxis=dict(title='O3 (ppbv)', side='bottom'),  # col=1
-        xaxis2=dict(title='CO2 (ppmv)', side='bottom'),  # col=2
-        xaxis3=dict(title='CO (ppbv)', side='bottom'),  # col=3
-        xaxis4=dict(title='H2O (ppthv)', side='bottom'),  # col=4
-        xaxis5=dict(title='OCS (ppthv)', side='bottom'),  # col=5
+        xaxis=dict(title='O3 (ppb)', side='bottom'),  # col=1
+        xaxis2=dict(title='CO2 (ppm)', side='bottom'),  # col=2
+        xaxis3=dict(title='CO (ppb)', side='bottom'),  # col=3
+        xaxis4=dict(title='H2O (ppth)', side='bottom'),  # col=4
+        xaxis5=dict(title='OCS (ppt)', side='bottom'),  # col=5
         xaxis6=dict(title='Temperature (C)', side='bottom'),  # col=6
 
         # Position legend to the right of all 3 panels
