@@ -35,7 +35,7 @@ computer = socket.gethostname().lower()
 if computer == 'wontn74902':
     host = 'local'
 elif 'qpdata' in computer:
-    host = 'qpdata''
+    host = 'qpdata'
 elif 'azurewebsites.net' in computer:
     host = 'fsdh'
 
