@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 computer = socket.gethostname().lower()
 if computer == 'wontn74902':
     host = 'local'
-elif 'qpdata' in computer:
+elif 'qpdata1' in computer or 'qpdata2' in computer:
     host = 'qpdata'
-elif 'azurewebsites.net' in computer:
+else:
     host = 'fsdh'
 
 # display host info

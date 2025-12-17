@@ -384,13 +384,34 @@ def status_indicator(sql_query,sql_engine,component_id='instrument-status-table'
     # now return full table
     return html.Div([
         html.H4("Instrument Status", style={"textAlign": "center"}),
+
         html.Table(
             [
-                html.Tbody(table_rows),  # your instrument rows
-                html.Tbody(legend_rows, style={
-                    "borderTop": "1px solid #ccc",
-                    "backgroundColor": "#f9f9f9"
-                })
+                html.Tbody(table_rows),
+
+                # --- Legend title row ---
+                html.Tbody([
+                    html.Tr([
+                        html.Td(
+                            "Indicator Legend",
+                            colSpan=2,
+                            style={
+                                "textAlign": "center",
+                                "fontWeight": "600",
+                                "padding": "8px 0",
+                                "borderTop": "1px solid #ccc",
+                                "color": "#555"
+                            }
+                        )
+                    ])
+                ]),
+
+                html.Tbody(
+                    legend_rows,
+                    style={
+                        "backgroundColor": "#f9f9f9"
+                    }
+                )
             ],
             style={
                 "width": "100%",
