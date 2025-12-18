@@ -34,8 +34,9 @@ logger = logging.getLogger(__name__)
 computer = socket.gethostname().lower()
 if computer == 'wontn74902':
     host = 'local'
-# elif 'qpdata1' in computer or 'qpdata2' in computer:
 elif 'qpdata' in computer:
+    host = 'qpdata'
+elif 'sandbox' in computer:
     host = 'qpdata'
 else:
     host = 'fsdh'
