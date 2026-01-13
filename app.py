@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
+from get_server_environment import get_server_environment, create_dash_app
 
 # set up logging
 logging.basicConfig(
@@ -29,25 +30,27 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-parent_dir = os.getcwd()
-path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
+host,path_prefix,parent_dir = get_server_environment(local_computer_name='wontn74902')
 
-# set a local switch to select host environment
-computer = socket.gethostname().lower()
-if computer == 'wontn74902':
-    host = 'local'
-elif 'qpdata' in computer:
-    host = 'qpdata'
-elif 'sandbox' in computer:
-    host = 'qpdata'
-else:
-    host = 'fsdh'
+# parent_dir = os.getcwd()
+# path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
 
-# display host info
-logging.basicConfig(level=logging.INFO)
-logger.info(f"Host environment detected: {host}")
-logger.info(f"parent path: {parent_dir}")
-print ( 'path_prefix: ' + path_prefix )
+# # set a local switch to select host environment
+# computer = socket.gethostname().lower()
+# if computer == 'wontn74902':
+#     host = 'local'
+# elif 'qpdata' in computer:
+#     host = 'qpdata'
+# elif 'sandbox' in computer:
+#     host = 'sandbox'
+# else:
+#     host = 'fsdh'
+
+# # display host info
+# logging.basicConfig(level=logging.INFO)
+# logger.info(f"Host environment detected: {host}")
+# logger.info(f"parent path: {parent_dir}")
+# print ( 'path_prefix: ' + path_prefix )
 
 # set up the sql connection string
 if host == 'fsdh':
@@ -58,7 +61,6 @@ if host == 'fsdh':
 
 else:
     # Load variables from .env into environment
-    # load_dotenv()
     load_dotenv( parent_dir + '/.env', override=True)
     DB_HOST = os.getenv('QP_SERVER')
     DB_USER = os.getenv('QP_VIEWER_USER')
@@ -102,35 +104,35 @@ button_style = {
     "boxShadow": "0 2px 6px rgba(0,0,0,0.07)"
 }
 
-# initialize the app based on host
-if host == 'fsdh':
-    url_prefix = "/app/AQPDBOR/"
-    app = dash.Dash(__name__,  
-                    requests_pathname_prefix=url_prefix,
-                    routes_pathname_prefix=url_prefix,
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True            
-                    )
-    server = app.server
-elif host == 'qpdata':
-    url_prefix = path_prefix
-    app = dash.Dash(__name__, 
-                    requests_pathname_prefix=url_prefix,
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True,
-                    eager_loading=True
-                    )
-    server = app.server
+# initialize the app based on host, specify the url_prefix if needed
+app, app.server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
+# if host == 'fsdh':
+#     url_prefix = "/app/AQPDBOR/"
+#     app = dash.Dash(__name__,  
+#                     requests_pathname_prefix=url_prefix,
+#                     routes_pathname_prefix=url_prefix,
+#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
+#                     suppress_callback_exceptions=True            
+#                     )
+#     server = app.server
+# elif host == 'qpdata':
+#     url_prefix = path_prefix
+#     app = dash.Dash(__name__, 
+#                     requests_pathname_prefix=url_prefix,
+#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
+#                     suppress_callback_exceptions=True,
+#                     eager_loading=True
+#                     )
+#     server = app.server
     
-else:
-    url_prefix = "/app/AQPDBOR/"
-    app = dash.Dash(__name__, 
-                    url_base_pathname=url_prefix,
-                    external_stylesheets=[dbc.themes.BOOTSTRAP],
-                    suppress_callback_exceptions=True
-                    ) 
+# else:
+#     url_prefix = "/app/AQPDBOR/"
+#     app = dash.Dash(__name__, 
+#                     url_base_pathname=url_prefix,
+#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
+#                     suppress_callback_exceptions=True
+#                     ) 
 
-logger.info(f"url_prefix: {url_prefix}")
 
 # set up the app layout
 app.layout = dbc.Container([
@@ -341,10 +343,5 @@ def update_plot_5(n_intervals):
 
 # Run the app
 if __name__ == "__main__":
-    if host == 'qpdata':
-        ## this does nothing in the web server environment with wsgi - it's already running.
-        # app.run_server(debug=False)
-        logger.info(f"skipping run_server on host: {host}")
-    else:
-        app.run(debug=False,port=8080)
+    app.run(debug=False,port=8080)
     sql_engine.dispose()
