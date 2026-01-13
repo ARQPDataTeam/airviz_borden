@@ -105,7 +105,7 @@ button_style = {
 }
 
 # initialize the app based on host, specify the url_prefix if needed
-app, app.server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
+app, server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
 # if host == 'fsdh':
 #     url_prefix = "/app/AQPDBOR/"
 #     app = dash.Dash(__name__,  
