@@ -13,8 +13,6 @@ import socket
 import logging
 import os
 # import pandas as pd
-from dotenv import load_dotenv
-# from packaging import version
 
 # local modules
 from plot_generators import time_series_generator
@@ -39,41 +37,8 @@ logger.info(f"path_prefix: {path_prefix}")
 # determine host environment
 host = get_server_environment(local_computer_name='wontn74902')
 
-# # set a local switch to select host environment
-# computer = socket.gethostname().lower()
-# if computer == 'wontn74902':
-#     host = 'local'
-# elif 'qpdata' in computer:
-#     host = 'qpdata'
-# elif 'sandbox' in computer:
-#     host = 'sandbox'
-# else:
-#     host = 'fsdh'
-
-# # display host info
-# logging.basicConfig(level=logging.INFO)
-# logger.info(f"Host environment detected: {host}")
-# logger.info(f"parent path: {parent_dir}")
-# print ( 'path_prefix: ' + path_prefix )
-
 # set up the sql connection string
 DB_HOST, DB_USER, DB_PASS, DB_NAME = credentials(host,parent_dir)
-
-# if host == 'fsdh':
-#     # Load OS environment variables
-#     DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-#     DB_USER = os.getenv('DATAHUB_PSQL_USER')
-#     DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
-#     DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
-
-# else:
-#     # Load variables from .env into environment
-#     load_dotenv( parent_dir + '/.env', override=True)
-#     DB_HOST = os.getenv('QP_SERVER')
-#     DB_USER = os.getenv('QP_VIEWER_USER')
-#     DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
-#     DB_NAME = os.getenv('QP_DATABASE')
-
 
 # set up the engine
 sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
@@ -111,33 +76,6 @@ button_style = {
 
 # initialize the app based on host, specify the url_prefix if needed
 app, server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
-# if host == 'fsdh':
-#     url_prefix = "/app/AQPDBOR/"
-#     app = dash.Dash(__name__,  
-#                     requests_pathname_prefix=url_prefix,
-#                     routes_pathname_prefix=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True            
-#                     )
-#     server = app.server
-# elif host == 'qpdata':
-#     url_prefix = path_prefix
-#     app = dash.Dash(__name__, 
-#                     requests_pathname_prefix=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True,
-#                     eager_loading=True
-#                     )
-#     server = app.server
-    
-# else:
-#     url_prefix = "/app/AQPDBOR/"
-#     app = dash.Dash(__name__, 
-#                     url_base_pathname=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True
-#                     ) 
-
 
 # set up the app layout
 app.layout = dbc.Container([
