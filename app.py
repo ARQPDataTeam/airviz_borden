@@ -13,14 +13,13 @@ import socket
 import logging
 import os
 # import pandas as pd
-from dotenv import load_dotenv
-# from packaging import version
 
 # local modules
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
-from get_server_environment import get_server_environment, create_dash_app
+from credentials import get_host_environment, get_credentials, create_dash_app
+
 
 # set up logging
 logging.basicConfig(
@@ -30,48 +29,21 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-host,path_prefix,parent_dir = get_server_environment(local_computer_name='wontn74902')
+# set up path details
+parent_dir = os.getcwd()
+logger.info(f"parent path: {parent_dir}")
+path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
+logger.info(f"path_prefix: {path_prefix}") 
 
-# parent_dir = os.getcwd()
-# path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
-
-# # set a local switch to select host environment
-# computer = socket.gethostname().lower()
-# if computer == 'wontn74902':
-#     host = 'local'
-# elif 'qpdata' in computer:
-#     host = 'qpdata'
-# elif 'sandbox' in computer:
-#     host = 'sandbox'
-# else:
-#     host = 'fsdh'
-
-# # display host info
-# logging.basicConfig(level=logging.INFO)
-# logger.info(f"Host environment detected: {host}")
-# logger.info(f"parent path: {parent_dir}")
-# print ( 'path_prefix: ' + path_prefix )
-
+# set global conditions for app and computer name
 # set up the sql connection string
-if host == 'fsdh':
-    # Load OS environment variables
-    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-    DB_USER = os.getenv('DATAHUB_PSQL_USER')
-    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX = get_credentials(parent_dir)
 
-else:
-    # Load variables from .env into environment
-    load_dotenv( parent_dir + '/.env', override=True)
-    DB_HOST = os.getenv('QP_SERVER')
-    DB_USER = os.getenv('QP_VIEWER_USER')
-    DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
-
-# logger.info('Credentials loaded locally')
-logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
-#logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
+# determine host environment
+host = get_host_environment(COMPUTER)
 
 # set up the engine
-sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_SERVER,DB_NAME)
 try:
     sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 except Exception as e:
@@ -105,34 +77,7 @@ button_style = {
 }
 
 # initialize the app based on host, specify the url_prefix if needed
-app, server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
-# if host == 'fsdh':
-#     url_prefix = "/app/AQPDBOR/"
-#     app = dash.Dash(__name__,  
-#                     requests_pathname_prefix=url_prefix,
-#                     routes_pathname_prefix=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True            
-#                     )
-#     server = app.server
-# elif host == 'qpdata':
-#     url_prefix = path_prefix
-#     app = dash.Dash(__name__, 
-#                     requests_pathname_prefix=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True,
-#                     eager_loading=True
-#                     )
-#     server = app.server
-    
-# else:
-#     url_prefix = "/app/AQPDBOR/"
-#     app = dash.Dash(__name__, 
-#                     url_base_pathname=url_prefix,
-#                     external_stylesheets=[dbc.themes.BOOTSTRAP],
-#                     suppress_callback_exceptions=True
-#                     ) 
-
+app, server = create_dash_app(host, path_prefix, URL_PREFIX)
 
 # set up the app layout
 app.layout = dbc.Container([

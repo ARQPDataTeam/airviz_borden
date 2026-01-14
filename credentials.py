@@ -1,16 +1,15 @@
-# this function differentiates server environments
+# this function differentiates host environments
 
 import socket
 import logging
 import os
 import dash
 import dash_bootstrap_components as dbc
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-def get_server_environment(local_computer_name):
-    parent_dir = os.getcwd()
-    path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
+def get_host_environment(local_computer_name):
 
     # set a local switch to select host environment
     computer = socket.gethostname().lower()
@@ -26,9 +25,35 @@ def get_server_environment(local_computer_name):
     # display host info
     logging.basicConfig(level=logging.INFO)
     logger.info(f"Host environment detected: {host}")
-    logger.info(f"parent path: {parent_dir}")
-    print ( 'path_prefix: ' + path_prefix ) 
-    return host,path_prefix,parent_dir 
+
+    return host
+
+def get_credentials(parent_dir):
+    try:
+        # Load variables from local .env into environment
+        load_dotenv(parent_dir + '/.env', override=True)
+        COMPUTER = os.getenv('COMPUTER')
+        DB_SERVER = os.getenv('SERVER')
+        DB_USER = os.getenv('VIEWER_USER')
+        DB_PASS = os.getenv('VIEWER_PASSWORD')
+        DB_NAME = os.getenv('DATABASE')
+        URL_PREFIX = os.getenv('URL_PREFIX')   
+
+    except Exception as e:
+        logger.error(f"Error loading .env file: {e}")
+        # Load OS environment variables
+        DB_SERVER = os.getenv('SERVER')
+        DB_USER = os.getenv('VIEWER_USER')
+        DB_PASS = os.getenv('VIEWER_PASSWORD')
+        DB_NAME = os.getenv('DATABASE')
+        URL_PREFIX = os.getenv('URL_PREFIX')
+
+    # logger.info('Credentials loaded locally')
+    logger.debug(f"{'DATABASE_SERVER'}: {DB_SERVER}")
+    logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
+    logger.debug(f"{'DATABASE_NAME'}: {DB_NAME}")
+
+    return COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX
 
 def create_dash_app(host, path_prefix, url_prefix):
     if host == "fsdh":
@@ -41,6 +66,16 @@ def create_dash_app(host, path_prefix, url_prefix):
         )
 
     elif host == "qpdata":
+        url_prefix = path_prefix
+        app = dash.Dash(
+            __name__,
+            requests_pathname_prefix=url_prefix,
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+            suppress_callback_exceptions=True,
+            eager_loading=True
+        )
+
+    elif host == "sandbox":
         url_prefix = path_prefix
         app = dash.Dash(
             __name__,
