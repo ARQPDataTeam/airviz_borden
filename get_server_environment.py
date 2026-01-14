@@ -71,6 +71,16 @@ def create_dash_app(host, path_prefix, url_prefix):
             eager_loading=True
         )
 
+    elif host == "sandbox":
+        url_prefix = path_prefix
+        app = dash.Dash(
+            __name__,
+            requests_pathname_prefix=url_prefix,
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+            suppress_callback_exceptions=True,
+            eager_loading=True
+        )
+
     else:
         app = dash.Dash(
             __name__,
