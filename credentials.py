@@ -1,4 +1,4 @@
-# this function differentiates server environments
+# this function differentiates host environments
 
 import socket
 import logging
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-def get_server_environment(local_computer_name):
+def get_host_environment(local_computer_name):
 
     # set a local switch to select host environment
     computer = socket.gethostname().lower()
@@ -28,28 +28,32 @@ def get_server_environment(local_computer_name):
 
     return host
 
-def credentials(host,parent_dir):
-    if host == 'fsdh':
-        # Load OS environment variables
-        DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-        DB_USER = os.getenv('DATAHUB_PSQL_USER')
-        DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
-        DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
+def get_credentials(parent_dir):
+    try:
+        # Load variables from local .env into environment
+        load_dotenv(parent_dir + '/.env', override=True)
+        COMPUTER = os.getenv('COMPUTER')
+        DB_SERVER = os.getenv('SERVER')
+        DB_USER = os.getenv('VIEWER_USER')
+        DB_PASS = os.getenv('VIEWER_PASSWORD')
+        DB_NAME = os.getenv('DATABASE')
+        URL_PREFIX = os.getenv('URL_PREFIX')   
 
-    else:
-        # Load variables from .env into environment
-        load_dotenv( parent_dir + '/.env', override=True)
-        DB_HOST = os.getenv('QP_SERVER')
-        DB_USER = os.getenv('QP_VIEWER_USER')
-        DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
-        DB_NAME = os.getenv('QP_DATABASE')
-    
+    except Exception as e:
+        logger.error(f"Error loading .env file: {e}")
+        # Load OS environment variables
+        DB_SERVER = os.getenv('SERVER')
+        DB_USER = os.getenv('VIEWER_USER')
+        DB_PASS = os.getenv('VIEWER_PASSWORD')
+        DB_NAME = os.getenv('DATABASE')
+        URL_PREFIX = os.getenv('URL_PREFIX')
+
     # logger.info('Credentials loaded locally')
-    logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
+    logger.debug(f"{'DATABASE_SERVER'}: {DB_SERVER}")
     logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
     logger.debug(f"{'DATABASE_NAME'}: {DB_NAME}")
 
-    return DB_HOST, DB_USER, DB_PASS, DB_NAME
+    return COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX
 
 def create_dash_app(host, path_prefix, url_prefix):
     if host == "fsdh":
