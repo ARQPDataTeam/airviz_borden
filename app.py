@@ -20,6 +20,10 @@ from plot_generators import profile_generator
 from plot_generators import status_indicator
 from get_server_environment import get_server_environment, credentials, create_dash_app
 
+# set global conditions for app and computer name
+local_computer_name='wontn74902'
+url_prefix="/app/AQPDBOR/"
+
 # set up logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -35,7 +39,7 @@ path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
 logger.info(f"path_prefix: {path_prefix}")      
 
 # determine host environment
-host = get_server_environment(local_computer_name='wontn74902')
+host = get_server_environment(local_computer_name)
 
 # set up the sql connection string
 DB_HOST, DB_USER, DB_PASS, DB_NAME = credentials(host,parent_dir)
@@ -75,7 +79,7 @@ button_style = {
 }
 
 # initialize the app based on host, specify the url_prefix if needed
-app, server = create_dash_app(host, path_prefix, url_prefix="/app/AQPDBOR/")
+app, server = create_dash_app(host, path_prefix, url_prefix)
 
 # set up the app layout
 app.layout = dbc.Container([
