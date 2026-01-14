@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from plot_generators import time_series_generator
 from plot_generators import profile_generator
 from plot_generators import status_indicator
-from get_server_environment import get_server_environment, create_dash_app
+from get_server_environment import get_server_environment, credentials, create_dash_app
 
 # set up logging
 logging.basicConfig(
@@ -30,10 +30,14 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-host,path_prefix,parent_dir = get_server_environment(local_computer_name='wontn74902')
+# set up path details
+parent_dir = os.getcwd()
+logger.info(f"parent path: {parent_dir}")
+path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
+logger.info(f"path_prefix: {path_prefix}")      
 
-# parent_dir = os.getcwd()
-# path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
+# determine host environment
+host = get_server_environment(local_computer_name='wontn74902')
 
 # # set a local switch to select host environment
 # computer = socket.gethostname().lower()
@@ -53,25 +57,26 @@ host,path_prefix,parent_dir = get_server_environment(local_computer_name='wontn7
 # print ( 'path_prefix: ' + path_prefix )
 
 # set up the sql connection string
-if host == 'fsdh':
-    # Load OS environment variables
-    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
-    DB_USER = os.getenv('DATAHUB_PSQL_USER')
-    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+DB_HOST, DB_USER, DB_PASS, DB_NAME = credentials(host,parent_dir)
 
-else:
-    # Load variables from .env into environment
-    load_dotenv( parent_dir + '/.env', override=True)
-    DB_HOST = os.getenv('QP_SERVER')
-    DB_USER = os.getenv('QP_VIEWER_USER')
-    DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
+# if host == 'fsdh':
+#     # Load OS environment variables
+#     DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+#     DB_USER = os.getenv('DATAHUB_PSQL_USER')
+#     DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+#     DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
 
-# logger.info('Credentials loaded locally')
-logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
-#logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
+# else:
+#     # Load variables from .env into environment
+#     load_dotenv( parent_dir + '/.env', override=True)
+#     DB_HOST = os.getenv('QP_SERVER')
+#     DB_USER = os.getenv('QP_VIEWER_USER')
+#     DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
+#     DB_NAME = os.getenv('QP_DATABASE')
+
 
 # set up the engine
-sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,'borden')
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
 try:
     sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 except Exception as e:

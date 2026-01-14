@@ -5,12 +5,11 @@ import logging
 import os
 import dash
 import dash_bootstrap_components as dbc
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
 def get_server_environment(local_computer_name):
-    parent_dir = os.getcwd()
-    path_prefix = '/' + os.path.basename(os.path.normpath(parent_dir)) + '/'
 
     # set a local switch to select host environment
     computer = socket.gethostname().lower()
@@ -26,9 +25,31 @@ def get_server_environment(local_computer_name):
     # display host info
     logging.basicConfig(level=logging.INFO)
     logger.info(f"Host environment detected: {host}")
-    logger.info(f"parent path: {parent_dir}")
-    print ( 'path_prefix: ' + path_prefix ) 
-    return host,path_prefix,parent_dir 
+
+    return host
+
+def credentials(host,parent_dir):
+    if host == 'fsdh':
+        # Load OS environment variables
+        DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+        DB_USER = os.getenv('DATAHUB_PSQL_USER')
+        DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+        DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
+
+    else:
+        # Load variables from .env into environment
+        load_dotenv( parent_dir + '/.env', override=True)
+        DB_HOST = os.getenv('QP_SERVER')
+        DB_USER = os.getenv('QP_VIEWER_USER')
+        DB_PASS = os.getenv('QP_VIEWER_PASSWORD')
+        DB_NAME = os.getenv('QP_DATABASE')
+    
+    # logger.info('Credentials loaded locally')
+    logger.debug(f"{'DATABASE_SERVER'}: {DB_HOST}")
+    logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
+    logger.debug(f"{'DATABASE_NAME'}: {DB_NAME}")
+
+    return DB_HOST, DB_USER, DB_PASS, DB_NAME
 
 def create_dash_app(host, path_prefix, url_prefix):
     if host == "fsdh":
