@@ -6,6 +6,7 @@ import os
 import dash
 import dash_bootstrap_components as dbc
 from dotenv import load_dotenv
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -29,29 +30,44 @@ def get_host_environment(local_computer_name):
     return host
 
 def get_credentials(parent_dir):
-    try:
-        # Load variables from local .env into environment
-        load_dotenv(parent_dir + '/.env', override=True)
-        COMPUTER = os.getenv('COMPUTER')
-        DB_SERVER = os.getenv('SERVER')
-        DB_USER = os.getenv('VIEWER_USER')
-        DB_PASS = os.getenv('VIEWER_PASSWORD')
-        DB_NAME = os.getenv('DATABASE')
-        URL_PREFIX = os.getenv('URL_PREFIX')   
+    env_path = Path(parent_dir) / ".env"
 
-    except Exception as e:
-        logger.error(f"Error loading .env file: {e}")
-        # Load OS environment variables
-        DB_SERVER = os.getenv('SERVER')
-        DB_USER = os.getenv('VIEWER_USER')
-        DB_PASS = os.getenv('VIEWER_PASSWORD')
-        DB_NAME = os.getenv('DATABASE')
-        URL_PREFIX = os.getenv('URL_PREFIX')
+    # 1. Try loading .env if it exists
+    if env_path.exists():
+        load_dotenv(env_path, override=True)
+        source = ".env file"
+    else:
+        source = "OS environment"
 
-    # logger.info('Credentials loaded locally')
-    logger.debug(f"{'DATABASE_SERVER'}: {DB_SERVER}")
-    logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
-    logger.debug(f"{'DATABASE_NAME'}: {DB_NAME}")
+    # 2. Read variables from environment (same code path either way)
+    COMPUTER   = os.getenv("COMPUTER")
+    DB_SERVER = os.getenv("SERVER")
+    DB_USER   = os.getenv("VIEWER_USER")
+    DB_PASS   = os.getenv("VIEWER_PASSWORD")
+    DB_NAME   = os.getenv("DATABASE")
+    URL_PREFIX= os.getenv("URL_PREFIX")
+
+    # 3. Validate
+    vars_dict = {
+        "COMPUTER": COMPUTER,
+        "SERVER": DB_SERVER,
+        "VIEWER_USER": DB_USER,
+        "VIEWER_PASSWORD": DB_PASS,
+        "DATABASE": DB_NAME,
+        "URL_PREFIX": URL_PREFIX,
+    }
+
+    missing = [name for name, value in vars_dict.items() if not value]
+
+    if missing:
+        raise ValueError(
+            f"Missing environment variables ({source}): {', '.join(missing)}"
+        )
+
+    logger.info(f"Credentials loaded from {source}")
+    logger.debug(f"DATABASE_SERVER: {DB_SERVER}")
+    logger.debug(f"DATABASE_USER: {DB_USER}")
+    logger.debug(f"DATABASE_NAME: {DB_NAME}")
 
     return COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX
 
