@@ -41,23 +41,23 @@ def get_credentials(parent_dir):
 
     # 2. Read variables from environment (same code path either way)
     COMPUTER   = os.getenv("COMPUTER")
-    DB_SERVER = os.getenv("SERVER")
+    SERVER = os.getenv("SERVER")
     VIEWER = os.getenv("VIEWER")
     VIEWER_PWD   = os.getenv("VIEWER_PWD")
     EDITOR = os.getenv("EDITOR")
     EDITOR_PWD   = os.getenv("EDITOR_PWD")
-    DB_NAME   = os.getenv("DATABASE")
+    DATABASE   = os.getenv("DATABASE")
     URL_PREFIX= os.getenv("URL_PREFIX")
 
     # 3. Validate
     vars_dict = {
         "COMPUTER": COMPUTER,
-        "SERVER": DB_SERVER,
+        "SERVER": SERVER,
         "VIEWER": VIEWER,
         "VIEWER_PWD": VIEWER_PWD,
         "EDITOR": EDITOR,
         "EDITOR_PWD": EDITOR_PWD,
-        "DATABASE": DB_NAME,
+        "DATABASE": DATABASE,
         "URL_PREFIX": URL_PREFIX,
     }
 
@@ -69,13 +69,12 @@ def get_credentials(parent_dir):
         )
 
     logger.info(f"Credentials loaded from {source}")
-    logger.debug(f"DATABASE_SERVER: {DB_SERVER}")
+    logger.debug(f"DATABASE_SERVER: {SERVER}")
     logger.debug(f"DATABASE_USER: {VIEWER}")
-    
-    logger.debug(f"DATABASE_NAME: {DB_NAME}")
 
+    logger.debug(f"DATABASE_NAME: {DATABASE}")
 
-    return COMPUTER, DB_SERVER, VIEWER, VIEWER_PWD, EDITOR, EDITOR_PWD, DB_NAME, URL_PREFIX
+    return COMPUTER, SERVER, VIEWER, VIEWER_PWD, EDITOR, EDITOR_PWD, DATABASE, URL_PREFIX
 
 def create_dash_app(host, path_prefix, url_prefix):
     if host == "fsdh":
