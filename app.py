@@ -37,13 +37,13 @@ logger.info(f"path_prefix: {path_prefix}")
 
 # set global conditions for app and computer name
 # set up the sql connection string
-COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX = get_credentials(parent_dir)
+COMPUTER, DB_SERVER, VIEWER, VIEWER_PWD, EDITOR, EDITOR_PWD, DB_NAME, URL_PREFIX = get_credentials(parent_dir)
 
 # determine host environment
 host = get_host_environment(COMPUTER)
 
 # set up the engine
-sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_SERVER,DB_NAME)
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(VIEWER,VIEWER_PWD,DB_SERVER,DB_NAME)
 try:
     sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 except Exception as e:
