@@ -1,15 +1,12 @@
-import dash
 import dash_bootstrap_components as dbc
-from dash import Dash, html, dcc, callback
+from dash import html, dcc
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output
 from sqlalchemy import create_engine
-from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from datetime import datetime as dt
 from datetime import timedelta as td
 from datetime import timezone as tz
-import socket
 import logging
 import os
 # import pandas as pd
@@ -37,13 +34,13 @@ logger.info(f"path_prefix: {path_prefix}")
 
 # set global conditions for app and computer name
 # set up the sql connection string
-COMPUTER, SERVER, VIEWER, VIEWER_PWD, EDITOR, EDITOR_PWD, DATABASE, URL_PREFIX = get_credentials(parent_dir)
+COMPUTER, SERVER, VIEWER_USER, VIEWER_PASSWORD, EDITOR_USER, EDITOR_PASSWORD, DATABASE, URL_PREFIX = get_credentials(parent_dir)
 
 # determine host environment
 host = get_host_environment(COMPUTER)
 
 # set up the engine
-sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(VIEWER,VIEWER_PWD,SERVER,DATABASE)
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(VIEWER_USER,VIEWER_PASSWORD,SERVER,DATABASE)
 try:
     sql_engine=create_engine(sql_engine_string,pool_pre_ping=True)
 except Exception as e:
