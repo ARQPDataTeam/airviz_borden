@@ -109,7 +109,7 @@ def create_dash_app(host, path_prefix, url_prefix):
     else:
         app = dash.Dash(
             __name__,
-            url_base_pathname=url_prefix,
+            url_base_pathname=None,
             external_stylesheets=[dbc.themes.BOOTSTRAP],
             suppress_callback_exceptions=True
         )
