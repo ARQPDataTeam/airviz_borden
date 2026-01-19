@@ -1,6 +1,6 @@
 -- gases plot 2
 SET TIMEZONE TO 'GMT';
-WITH timerange AS ( SELECT '{}'::timestamp AS start_time, '{}'::timestamp AS end_time )
+WITH timerange AS ( SELECT %s::timestamp AS start_time, %s::timestamp AS end_time )
 SELECT datetime AT TIME ZONE 'GMT' AS datetime, co_l, h2o_p, h2o_e, h2o_l, h2o_pic, o3 FROM (
         SELECT DISTINCT ON (dt) dt AS datetime, round(h2o,1) AS h2o_p FROM (
             SELECT date_trunc('minute',datetime) AS dt, h2o

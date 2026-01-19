@@ -32,12 +32,13 @@ def time_series_generator(start_date,end_date,sql_query,sql_engine):
         sql_query=f.read()
 
     # sql query
-    sql_query=(sql_query).format(start_date,end_date)
-    # logger.debug(sql_query)
-    
     with sql_engine.connect() as conn:
-    # create the dataframes from the sql query
-        output_df=pd.read_sql_query(sql_query, conn)
+        output_df = pd.read_sql_query(
+            sql_query,
+            conn,
+            params=(start_date, end_date)
+        )    
+    
     # set a datetime index
     output_df.set_index('datetime', inplace=True)
     output_df.index=pd.to_datetime(output_df.index)
