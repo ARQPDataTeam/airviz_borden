@@ -1,5 +1,5 @@
 SET TIMEZONE TO 'GMT';
-WITH timerange AS ( SELECT '{}'::timestamp AS start_time, '{}'::timestamp AS end_time )
+WITH timerange AS ( SELECT %s::timestamp AS start_time, %s::timestamp AS end_time )
 SELECT datetime AT TIME ZONE 'GMT' AS datetime, vtempa, temp33m, temp42m FROM (
     SELECT DISTINCT ON (datetime) * FROM (
         SELECT date_trunc('minute',datetime) AS datetime, temp33m, tempa AS temp42m
