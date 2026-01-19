@@ -6,8 +6,56 @@ import os
 import dash
 import dash_bootstrap_components as dbc
 from dotenv import load_dotenv
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+def get_credentials(parent_dir):
+    env_path = Path(parent_dir) / ".env"
+
+    # 1. Try loading .env if it exists
+    if env_path.exists():
+        load_dotenv(env_path, override=True)
+        source = ".env file"
+    else:
+        source = "OS environment"
+
+    # 2. Read variables from environment (same code path either way)
+    COMPUTER   = os.getenv("COMPUTER")
+    SERVER = os.getenv("SERVER")
+    VIEWER_USER = os.getenv("VIEWER_USER")
+    VIEWER_PASSWORD   = os.getenv("VIEWER_PASSWORD")
+    EDITOR_USER = os.getenv("EDITOR_USER")
+    EDITOR_PASSWORD   = os.getenv("EDITOR_PASSWORD")
+    DATABASE   = os.getenv("DATABASE")
+    URL_PREFIX= os.getenv("URL_PREFIX")
+
+    # 3. Validate
+    vars_dict = {
+        "COMPUTER": COMPUTER,
+        "SERVER": SERVER,
+        "VIEWER_USER": VIEWER_USER,
+        "VIEWER_PASSWORD": VIEWER_PASSWORD,
+        "EDITOR_USER": EDITOR_USER,
+        "EDITOR_PASSWORD": EDITOR_PASSWORD,
+        "DATABASE": DATABASE,
+        "URL_PREFIX": URL_PREFIX,
+    }
+
+    missing = [name for name, value in vars_dict.items() if not value]
+
+    if missing:
+        raise ValueError(
+            f"Missing environment variables ({source}): {', '.join(missing)}"
+        )
+
+    logger.info(f"Credentials loaded from {source}")
+    logger.debug(f"DATABASE_SERVER: {SERVER}")
+    logger.debug(f"DATABASE_USER: {VIEWER_USER}")
+    logger.debug(f"DATABASE_EDITOR: {EDITOR_USER}")
+    logger.debug(f"DATABASE_NAME: {DATABASE}")
+
+    return COMPUTER, SERVER, VIEWER_USER, VIEWER_PASSWORD, EDITOR_USER, EDITOR_PASSWORD, DATABASE, URL_PREFIX
 
 def get_host_environment(local_computer_name):
 
@@ -27,33 +75,6 @@ def get_host_environment(local_computer_name):
     logger.info(f"Host environment detected: {host}")
 
     return host
-
-def get_credentials(parent_dir):
-    try:
-        # Load variables from local .env into environment
-        load_dotenv(parent_dir + '/.env', override=True)
-        COMPUTER = os.getenv('COMPUTER')
-        DB_SERVER = os.getenv('SERVER')
-        DB_USER = os.getenv('VIEWER_USER')
-        DB_PASS = os.getenv('VIEWER_PASSWORD')
-        DB_NAME = os.getenv('DATABASE')
-        URL_PREFIX = os.getenv('URL_PREFIX')   
-
-    except Exception as e:
-        logger.error(f"Error loading .env file: {e}")
-        # Load OS environment variables
-        DB_SERVER = os.getenv('SERVER')
-        DB_USER = os.getenv('VIEWER_USER')
-        DB_PASS = os.getenv('VIEWER_PASSWORD')
-        DB_NAME = os.getenv('DATABASE')
-        URL_PREFIX = os.getenv('URL_PREFIX')
-
-    # logger.info('Credentials loaded locally')
-    logger.debug(f"{'DATABASE_SERVER'}: {DB_SERVER}")
-    logger.debug(f"{'DATABASE_USER'}: {DB_USER}")
-    logger.debug(f"{'DATABASE_NAME'}: {DB_NAME}")
-
-    return COMPUTER, DB_SERVER, DB_USER, DB_PASS, DB_NAME, URL_PREFIX
 
 def create_dash_app(host, path_prefix, url_prefix):
     if host == "fsdh":
@@ -88,7 +109,7 @@ def create_dash_app(host, path_prefix, url_prefix):
     else:
         app = dash.Dash(
             __name__,
-            url_base_pathname=url_prefix,
+            url_base_pathname=None,
             external_stylesheets=[dbc.themes.BOOTSTRAP],
             suppress_callback_exceptions=True
         )
